@@ -33,6 +33,7 @@
 	option('DIR_THUMB_FROM_ICONS_DIR', FALSE);
 	option('DIR_DESC_FILE', '_desc.txt');
 	option('DIR_BANNER_FILE', '_banner.txt');
+	option('IMAGE_DESCRIPTION_FILE', 'comments.txt');
 	option('DIR_ROOT_BANNER_IN_SUBDIRS', TRUE);
 	option('DIR_DESC_IN_GALLERY', TRUE);
 	option('DIR_DESC_IN_INFO', TRUE);
@@ -170,6 +171,7 @@
 	option('TEXT_IMAGESIZE', 'Image size');
 	option('TEXT_DIR_NAME', 'Gallery Name');
 	option('TEXT_IMAGE_NAME', 'Image Name');
+	option('TEXT_IMAGE_DESCRIPTION', 'Image Description');
 	option('TEXT_FILE_NAME', 'File Name');
 	option('TEXT_DIRS', 'Directories');
 	option('TEXT_DIR_MARK_START', '&#128193;&#xFE0E; ');
@@ -1454,6 +1456,7 @@
 
 		var navInfo = [];
 		var dirInfo = [];
+
 		var imgInfo = [];
 		var fileInfo = [];
 
@@ -1818,6 +1821,7 @@
 					info += '<img class=\"thumb\" alt=\"\" src=\"'+phpSelf+'?cmd=thumb&sfpg='+imgInfo[id]['imageLink']+'\">';
 					info += '</div>';
 					info += '<strong>".sts(TEXT_IMAGE_NAME)."</strong><br><div class=\"sfpg_info_text\">'+imgInfo[id]['imageName'] + '</div><br>';
+					if (imgInfo[id]['imageDesc']) info += '<strong>".sts(TEXT_IMAGE_DESCRIPTION)."</strong><br><div class=\"sfpg_info_text\">'+imgInfo[id]['imageDesc'] + '</div><br>';
 					";
 					if(PAYPAL_ENABLED)
 					{
@@ -2060,6 +2064,7 @@
 				if (preloadImg.complete)
 				{
 					gebi('full').src = preloadImg.src;
+					gebi('full_text').innerHTML = (imgInfo[index]['imageDesc'] != '' ? imgInfo[index]['imageDesc'] : imgInfo[index]['imageName']);
 					stage=2;
 				}
 			}
@@ -2715,7 +2720,7 @@
 				}
 				content += ' class=\"innerboximg\">';
 				content += '<div class=\"thumbimgbox\"><img class=\"thumb\" alt=\"\" src=\"'+phpSelf+'?cmd=thumb&sfpg='+imgInfo[elementNumber]['imageLink']+'\"></div>';
-				". (THUMB_CHARS_MAX ? "content += thumbDisplayName(imgInfo[elementNumber]['imageName']);" : "")."
+				". (THUMB_CHARS_MAX ? "content += thumbDisplayName( (imgInfo[elementNumber]['imageDesc'] != '' ? imgInfo[elementNumber]['imageDesc'] : imgInfo[elementNumber]['imageName']) );" : "")."
 				content += '</div>';
 			}
 			else if (type == 'file')
@@ -3008,6 +3013,15 @@
 		}
 		echo_js_array('dirInfo', 0, $dir_info, DESC_NL_TO_BR);
 
+		//Load comment from comment file (if there is any)
+		$imgDesc = array();
+		if($lines = file(GALLERY_ROOT . GALLERY . IMAGE_DESCRIPTION_FILE)) {
+			foreach ($lines as $key => $line) {
+				if(preg_match('/(.*)\t+(.*)/', $line, $matches))
+					$imgDesc[$matches[1]] = $matches[2];
+			}
+		}
+
 		$img_direct_link = FALSE;
 		$item = 1;
 		foreach ($images as $val)
@@ -3058,6 +3072,7 @@
 				}
 				$image_info['imageName'] = sfpg_display_name($val, SHOW_IMAGE_EXT);
 				$image_info['imageLink'] = sfpg_url_string(GALLERY, $val);
+				$image_info['imageDesc'] = isset($imgDesc[$val]) ? $imgDesc[$val] : '';
 				if (PAYPAL_ENABLED)
 				{
 					$sell=(in_array($val.PAYPAL_EXTENSION,$misc)?@file(GALLERY_ROOT.GALLERY.$val.PAYPAL_EXTENSION,FILE_IGNORE_NEW_LINES):false);
@@ -3855,6 +3870,12 @@
 		width:100%;
 	}
 
+	.full_text
+	{
+		font-size: 16px;
+		padding-bottom: 4px;
+	}
+
 	.thumb
 	{
 		'.(ROUND_CORNERS?'border-radius:'.ROUND_CORNERS.'px;':'').'
@@ -4039,6 +4060,7 @@
 			'</table>'.
 		'</div>'.
 		'<div id="box_image" class="box_image">'.
+			'<div id="full_text" class="full_text"></div>' .
 			'<img alt="" src="" id="full" class="full_image" onclick="closeImageView()" onmouseover="gebi(\'button_close\').className=\'sfpg_button_hover\'" onmouseout="gebi(\'button_close\').className=\'sfpg_button\'">'.
 		'</div>'.
 		'<div id="box_wait" class="box_wait">'.
