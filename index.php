@@ -147,6 +147,7 @@
 	define('TEXT_INFO', 'Information');
 	define('TEXT_DOWNLOAD', 'Download full-size image');
 	define('TEXT_SLIDESHOW', 'Slideshow');
+	define('TEXT_GALLERY_DOWNLOAD', 'Download complete gallery');
 	define('TEXT_NO_IMAGES', 'No Images in gallery');
 	define('TEXT_DATE', 'Date');
 	define('TEXT_FILESIZE', 'File size');
@@ -1720,6 +1721,7 @@
 					echo "
 					info += '</div><br>';
 					info += '<strong>".sts(TEXT_LINKS)."</strong><br><a href=\"'+phpSelfLink(dirLink[id])+'\">".sts(TEXT_DIRECT_LINK_GALLERY)."</a><br><br>';
+					".(TEXT_GALLERY_DOWNLOAD ? "info += '<a href=\"'+phpSelf+'?cmd=gallery_down&sfpg='+dirLink[id]+'\">".sts(TEXT_GALLERY_DOWNLOAD)."<br>(ZIP, '+dirSize[0]+')</a><br><br>';" : "")."
 				}
 				else if (type == 'img')
 				{
@@ -3035,6 +3037,34 @@
 			if ($_GET['cmd'] == 'file')
 			{
 				header('Location: '.GALLERY_ROOT.GALLERY.IMAGE);
+				exit;
+			}
+
+			if ($_GET["cmd"] == "gallery_down")
+			{
+				set_time_limit(60*60);
+
+				$zipname = str_replace("/", "", GALLERY);
+				if ($zipname == '') $zipname = 'gallery';
+
+				header('Content-Type: application/octet-stream');
+				header('Content-disposition: attachment; filename="'.$zipname.'.zip"');
+
+				// use popen to execute a unix command pipeline
+				// and grab the stdout as a php stream
+				// (you can use proc_open instead if you need to
+				// control the input of the pipeline too)
+				//
+				$fp = popen('zip -j - "'.GALLERY_ROOT.GALLERY.'"*', 'r');
+
+				// pick a bufsize that makes you happy (8192 has been suggested).
+				$bufsize = 8192;
+				$buff = '';
+				while( !feof($fp) ) {
+					$buff = fread($fp, $bufsize);
+					echo $buff;
+				}
+				pclose($fp);
 				exit;
 			}
 		}
