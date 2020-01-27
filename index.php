@@ -33,6 +33,7 @@
 	define('DIR_THUMB_FILE', '_dir.jpg');
 	define('DIR_DESC_FILE', '_desc.txt');
 	define('DIR_BANNER_FILE', '_banner.txt');
+	define("IMAGE_DESCRIPTION_FILE", "comments.txt");
 	define('DIR_DESC_IN_GALLERY', TRUE);
 	define('DIR_DESC_IN_INFO', TRUE);
 	define('DIR_SORT_REVERSE', FALSE);
@@ -152,6 +153,7 @@
 	define('TEXT_DISPLAYED_IMAGE', 'Displayed Image');
 	define('TEXT_DIR_NAME', 'Gallery Name');
 	define('TEXT_IMAGE_NAME', 'Image Name');
+	define("TEXT_IMAGE_DESCRIPTION", 'Image Description');
 	define('TEXT_FILE_NAME', 'File Name');
 	define('TEXT_DIRS', 'Sub galleries');
 	define('TEXT_IMAGES', 'Images');
@@ -1212,9 +1214,12 @@
 		var dirThumb = [];
 		var dirName = [];
 		var dirInfo = [];
+		var dirSize = [];
+		var dirSizeFull = [];
 
 		var imgLink = [];
 		var imgName = [];
+		var imgDescription = [];
 		var imgInfo = [];
 		var imgSell = [];
 
@@ -1637,6 +1642,7 @@
 					info += '</div>';
 					var splint = imgInfo[id].split('|');
 					info += '<strong>".sfpg_str_to_script(TEXT_IMAGE_NAME)."</strong><br><div class=\"sfpg_info_text\">'+imgName[id] + '</div><br>';
+					info += '<strong>".sfpg_str_to_script(TEXT_IMAGE_DESCRIPTION)."</strong><br><div class=\"sfpg_info_text\">'+imgDescription[id] + '</div><br>';
 					";
 					if(PAYPAL_ENABLED)
 					{
@@ -1870,6 +1876,7 @@
 				if (preloadImg.complete)
 				{
 					document.getElementById('full').src = preloadImg.src;
+					document.getElementById('full_text').innerHTML = (imgDescription[index] != '' ? imgDescription[index] : imgName[index]);
 					initDisplay();
 					stage=2;
 				}
@@ -2175,7 +2182,7 @@
 			{
 				content += '<div onclick=\"mouseClick(this, \'img\', '+elementNumber+')\" onmouseover=\"mouseOver(this, \'img\', '+elementNumber+')\" onmouseout=\"mouseOut(this, \'img\', '+elementNumber+')\" class=\"innerboximg\">';
 				content += '<div class=\"thumbimgbox\"><img class=\"thumb\" alt=\"\" src=\"'+phpSelf+'?cmd=thumb&sfpg='+imgLink[elementNumber]+'\"></div>';
-				". (THUMB_CHARS_MAX ? "content += thumbDisplayName(imgName[elementNumber]);" : "")."
+				". (THUMB_CHARS_MAX ? "content += thumbDisplayName( (imgDescription[elementNumber] != '' ? imgDescription[elementNumber] : imgName[elementNumber]) );" : "")."
 				content += '</div>';
 			}
 			else if (type == 'file')
@@ -2391,7 +2398,18 @@
 			$filed = explode("|", file_get_contents(DATA_ROOT."info/".GALLERY."_sfpg_dir"));
 		}
 		echo "dirThumb[0] = '".$filed[4]."';\n";
-		echo "dirInfo[0] = '".sfpg_str_to_script($filed[3]."|".$filed[0]."|".$filed[1]."|".$filed[2]."|".(in_array(DIR_DESC_FILE, $misc)?@file_get_contents(GALLERY_ROOT.GALLERY.DIR_DESC_FILE):""),false,DESC_NL_TO_BR)."';\n\n";
+		echo "dirInfo[0] = '".sfpg_str_to_script($filed[3]."|".$filed[0]."|".$filed[1]."|".$filed[2]."|".(in_array(DIR_DESC_FILE, $misc)?@file_get_contents(GALLERY_ROOT.GALLERY.DIR_DESC_FILE):""),false,DESC_NL_TO_BR)."';\n";
+		echo "dirSize[0] = '" .trim(shell_exec('du -h -c "'.GALLERY_ROOT.GALLERY.'" | tail -n1 | cut -f1 ')). "';\n\n";
+
+		//Load comment from comment file (if there is any)
+		$imgDescription = array();
+		if($lines = file(GALLERY_ROOT . GALLERY . IMAGE_DESCRIPTION_FILE)) {
+			foreach ($lines as $key => $line) {
+				if(preg_match('/(.*)\t+(.*)/', $line, $matches))
+					$imgDescription[$matches[1]] = $matches[2];
+			}
+		}
+
 		$item = 1;
 		foreach ($dirs as $val)
 		{
@@ -2412,7 +2430,8 @@
 			}
 			$filed = explode("|", file_get_contents(DATA_ROOT."info/".GALLERY.$val."/_sfpg_dir"));
 			echo "dirThumb[".($item)."] = '".$filed[4]."';\n";
-			echo "dirInfo[".($item)."] = '".sfpg_str_to_script($filed[3]."|".$filed[0]."|".$filed[1]."|".$filed[2]."|".@file_get_contents(GALLERY_ROOT.GALLERY.$val."/".DIR_DESC_FILE),false,DESC_NL_TO_BR)."';\n\n";
+			echo "dirInfo[".($item)."] = '".sfpg_str_to_script($filed[3]."|".$filed[0]."|".$filed[1]."|".$filed[2]."|".@file_get_contents(GALLERY_ROOT.GALLERY.$val."/".DIR_DESC_FILE),false,DESC_NL_TO_BR)."';\n";
+			echo "dirSize[" . ($item) . "] = '" .trim(shell_exec('du -h "'.GALLERY_ROOT.GALLERY.$val.'/" | tail -n1 | cut -f1 ')). "';\n\n";
 			$item++;
 		}
 		$img_direct_link = FALSE;
@@ -2443,6 +2462,7 @@
 				echo "imgLink[".($item)."] = '".sfpg_url_string(GALLERY, $val)."';\n";
 				$img_name = sfpg_display_name($val, SHOW_IMAGE_EXT);
 				echo "imgName[".($item)."] = '".sfpg_str_to_script($img_name)."';\n";
+				echo "imgDescription[" . ($item) . "] = '" . (isset($imgDescription[$val]) ? $imgDescription[$val] : '') . "';\n";
 				if (file_exists(DATA_ROOT.'info/'.GALLERY.$val))
 				{
 					$filed=file_get_contents(DATA_ROOT."info/".GALLERY.$val);
@@ -2908,6 +2928,12 @@
 		width:100%;
 	}
 
+	.full_text
+	{
+		font-size: 16px;
+		padding-bottom: 4px;
+	}
+
 	.thumb
 	{
 		".(ROUND_CORNERS?'border-radius: '.ROUND_CORNERS.'px;':'')."
@@ -3064,6 +3090,7 @@
 		'<div id="box_image" class="box_image">' .
 			'<table class="sfpg_disp">' .
 				'<tr><td class="mid">' .
+					'<div id="full_text" class="full_text"></div>' .
 					'<img alt="" src="" id="full" class="full_image" onclick="closeImageView()" onmouseover="document.getElementById(\'button_close\').className=\'sfpg_button_hover\'" onmouseout="document.getElementById(\'button_close\').className=\'sfpg_button\'">' .
 				'</td></tr>' .
 			'</table>' .
