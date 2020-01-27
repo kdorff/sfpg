@@ -2,12 +2,12 @@
 
 	/*
 
-		Single File PHP Gallery 4.5.6 (SFPG)
+		Single File PHP Gallery 4.5.7 (SFPG)
 
 		See EULA in readme.txt for commercial use
 		See readme.txt for configuration
 
-		Released: 15-December-2014
+		Released: 20-May-2015
 		http://sye.dk/sfpg/
 		by Kenny Svalgaard
 
@@ -19,7 +19,7 @@
 
 	define('GALLERY_ROOT', './');
 	define('DATA_ROOT', './_sfpg_data/');
-	define('SECURITY_PHRASE', 'change this text!');
+	define('SECURITY_PHRASE', '');
 	define('PASSWORD', '');
 	define('ADMIN', FALSE);
 
@@ -56,9 +56,9 @@
 	define('ICONS_DIR', '_sfpg_icons/');
 	define('LINK_BACK', '');
 	define('CHARSET', 'utf-8');
-	define('ALLOW_DESC_HTML', FALSE);
 	define('DATE_FORMAT', 'Day Date Month Year Hour:Min:Sec');
 	define('DESC_EXT', '.txt');
+	define('DESC_NL_TO_BR', FALSE);
 	define('SORT_DIVIDER', '--');
 	define('SORT_ALL_NATURAL', TRUE);
 	define('FONT_SIZE', 12);
@@ -234,7 +234,24 @@
 	$color_desc_box_border = '#404040';
 	$color_desc_box_back = '#202020';
 	$color_desc_box_text = '#aaaaaa';
-	
+
+	$color_menu_back = '#000000';
+	$color_menu_top = '#303030';
+
+	$color_navbar_back = '#202020';
+	$color_navbar_top = '#303030';
+
+	$color_button_nav_border = '#404040';
+	$color_button_nav_back = '#101010';
+	$color_button_nav_text ='#808080';
+
+	$color_info_back = '#000000';
+	$color_info_border = '#606060';
+	$color_info_text = '#aaaaaa';
+
+	$color_infobox_border = '#404040';
+	$color_infobox_back ='#101010';
+
 	$color_button_border = '#808080';
 	$color_button_back = '#000000';
 	$color_button_text = '#aaaaaa';
@@ -247,7 +264,6 @@
 	$color_button_text_on = '#000000';
 
 	$color_overlay = '#000000';
-	$color_menu_hover = '#ffffff';
 
 	//	----------- CONFIGURATION END ------------
 
@@ -324,7 +340,7 @@
 	function sfpg_url_decode($string)
 	{
 		$get = explode('*', sfpg_base64url_decode($string));
-		if ((md5($get[0].'*'.$get[1].'*'.SECURITY_PHRASE) === $get[2]) and (strpos($get[0].$get[1], '/../') === FALSE))
+		if ((md5($get[0].'*'.$get[1].'*'.SECURITY_PHRASE) === $get[2]) and (strpos($get[0].$get[1], '/../') === FALSE) and (strpos($get[0].$get[1], '\\') === FALSE))
 		{
 			return array($get[0], $get[1]);
 		}
@@ -335,30 +351,18 @@
 	}
 
 
-	function sfpg_str_to_script($str, $encode=true, $force_escape=false)
+	function sfpg_str_to_script($str, $block_html_tags=false, $nl_to_br=true)
 	{
-		if (($encode or !ALLOW_DESC_HTML) and !$force_escape)
+		$str = str_replace("\r", "", $str);
+		$str = str_replace("\n", ($nl_to_br?"<br>":""), $str);
+		$str = str_replace("\\", "\\\\", $str);
+		$str = str_replace("\"", "\\\"", $str);
+		$str = str_replace("'", "\'", $str);
+		if ($block_html_tags)
 		{
-			$str = str_replace("\r", "", $str);
-			$result = '';
-			$str_exp = explode('|', $str);
-			foreach ($str_exp as $ele)
-			{
-				$result.=($result===''?'':'|');
-				$result.=htmlentities($ele, ENT_QUOTES | ENT_DISALLOWED | ENT_HTML5, CHARSET);
-			}
-			$result = str_replace("&NewLine;", "<br>", $result);
-			return $result;
+			$str = str_replace("<", "&lt;", $str);
 		}
-		else
-		{
-			$str = str_replace("\r", "", $str);
-			$str = str_replace("\n", "<br>", $str);
-			$str = str_replace("\\", "\\\\", $str);
-			$str = str_replace("\"", "\\\"", $str);
-			$str = str_replace("'", "\'", $str);
-			return $str;
-		}
+		return $str;
 	}
 
 
@@ -570,7 +574,9 @@
 		if (!is_dir($dir))
 		{
 			mkdir($dir, 0777, TRUE);
+			return true;
 		}
+		return false;
 	}
 
 
@@ -690,7 +696,6 @@
 	{
 		$image_path_file = DATA_ROOT.$func.'/'.$image_dir.$image_file;
 		$image_type = sfpg_image_type($image_file);
-
 		if ($func == 'image')
 		{
 			if (!file_exists($image_path_file))
@@ -710,7 +715,6 @@
 			readfile($image_path_file);
 			exit;
 		}
-
 		if (($func == 'thumb') or ($func == 'preview'))
 		{
 			if (file_exists($image_path_file))
@@ -755,7 +759,6 @@
 				{
 					exit;
 				}
-
 				if (($func == 'thumb') and ($image_dir != ICONS_DIR))
 				{
 					sfpg_mkdir(DATA_ROOT.'info/'.$image_dir);
@@ -775,11 +778,11 @@
 								}
 								else
 								{
-									$exif_info .= 'n/a';
+									$exif_info .= '';
 								}
 								$exif_info .= '|';
-								$exif_info .= (isset($exif_data['Model'])?$exif_data['Model']:'n/a').'|';
-								$exif_info .= (isset($exif_data['ISOSpeedRatings'])?$exif_data['ISOSpeedRatings']:'n/a').'|';
+								$exif_info .= (isset($exif_data['Model'])?$exif_data['Model']:'').'|';
+								$exif_info .= (isset($exif_data['ISOSpeedRatings'])?$exif_data['ISOSpeedRatings']:'').'|';
 								if(isset($exif_data['ExposureTime']))
 								{
 									$exif_ExposureTime=create_function('','return '.$exif_data['ExposureTime'].';');
@@ -796,7 +799,7 @@
 								}
 								else
 								{
-									$exif_info .= 'n/a';
+									$exif_info .= '';
 								}
 								$exif_info .= '|';
 								if(isset($exif_data['FNumber']))
@@ -806,7 +809,7 @@
 								}
 								else
 								{
-									$exif_info .= 'n/a';
+									$exif_info .= '';
 								}
 								$exif_info .= '|';
 								if(isset($exif_data['FocalLength']))
@@ -816,7 +819,7 @@
 								}
 								else
 								{
-									$exif_info .= 'n/a';
+									$exif_info .= '';
 								}
 								$exif_info .= '|';
 								if(isset($exif_data['Flash']))
@@ -825,7 +828,7 @@
 								}
 								else
 								{
-									$exif_info .= 'n/a';
+									$exif_info .= '';
 								}
 							}
 							else
@@ -833,12 +836,10 @@
 								$exif_info = 'sfpg_no_exif_data_in_file||||||';
 							}
 						}
-
 						if (ROTATE_IMAGES and isset($exif_data['Orientation']))
 						{
 							$image_width = imagesx($image);
 							$image_height = imagesy($image);
-
 							switch ($exif_data['Orientation'])
 							{
 								case 2 :
@@ -931,7 +932,6 @@
 							$image = $rotate;
 						}
 					}
-
 					$iptc_info = '|||||||||||||||||';
 					if(SHOW_IPTC_INFO)
 					{
@@ -940,30 +940,30 @@
 						{
 							$iptc_info = '';
 							$iptc = iptcparse($info['APP13']);
-							$iptc_info .= (isset($iptc['2#005']) ? $iptc['2#005'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#010']) ? $iptc['2#010'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#015']) ? $iptc['2#015'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#020']) ? $iptc['2#020'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#040']) ? $iptc['2#040'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#055']) ? $iptc['2#055'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#085']) ? $iptc['2#085'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#090']) ? $iptc['2#090'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#095']) ? $iptc['2#095'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#101']) ? $iptc['2#101'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#103']) ? $iptc['2#103'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#105']) ? $iptc['2#105'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#110']) ? $iptc['2#110'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#115']) ? $iptc['2#115'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#116']) ? $iptc['2#116'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#120']) ? $iptc['2#120'][0] : 'n/a').'|';
-							$iptc_info .= (isset($iptc['2#122']) ? $iptc['2#122'][0] : 'n/a').'|';
+							$iptc_info .= (isset($iptc['2#005']) ? $iptc['2#005'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#010']) ? $iptc['2#010'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#015']) ? $iptc['2#015'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#020']) ? $iptc['2#020'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#040']) ? $iptc['2#040'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#055']) ? $iptc['2#055'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#080']) ? $iptc['2#080'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#085']) ? $iptc['2#085'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#090']) ? $iptc['2#090'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#095']) ? $iptc['2#095'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#101']) ? $iptc['2#101'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#103']) ? $iptc['2#103'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#105']) ? $iptc['2#105'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#110']) ? $iptc['2#110'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#115']) ? $iptc['2#115'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#116']) ? $iptc['2#116'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#120']) ? $iptc['2#120'][0] : '').'|';
+							$iptc_info .= (isset($iptc['2#122']) ? $iptc['2#122'][0] : '').'|';
 						}
 						else
 						{
-							$iptc_info = 'sfpgnoiptc|||||||||||||||||';
+							$iptc_info = 'sfpgnoiptc||||||||||||||||||';
 						}
 					}
-
 					if (WATERMARK)
 					{
 						$wm_file = GALLERY_ROOT.ICONS_DIR.WATERMARK;
@@ -998,7 +998,6 @@
 							}
 						}
 					}
-
 					if ($image_changed)
 					{
 						sfpg_mkdir(DATA_ROOT.'image/'.$image_dir);
@@ -1016,7 +1015,6 @@
 							imagegif($image, $new_full_img);
 						}
 					}
-					
 					$fp = fopen(DATA_ROOT.'info/'.$image_dir.$image_file, 'w');
 					fwrite($fp, filemtime(GALLERY_ROOT.$image_dir.$image_file).'|'.sfpg_file_size(filesize(GALLERY_ROOT.$image_dir.$image_file)).'|'.imagesx($image).'|'.imagesy($image).'|'.$exif_info.'|'.$iptc_info);
 					fclose($fp);
@@ -1093,11 +1091,7 @@
 
 	function sfpg_set_dir_info($dir)
 	{
-		if (!is_dir(DATA_ROOT.'info/'.$dir))
-		{
-			mkdir(DATA_ROOT.'info/'.$dir, 0777, TRUE);
-		}
-		else
+		if (!sfpg_mkdir(DATA_ROOT.'info/'.$dir))
 		{
 			sfpg_clean_data_root($dir);
 		}
@@ -1159,10 +1153,21 @@
 	}
 
 
+	function sfpg_random($nr)
+	{
+		$a='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		$res='';
+		for($i = 0; $i<$nr; $i++)
+		{
+			$res.=$a[mt_rand(0,strlen($a)-1)];
+		}
+		return $res;
+	}
+
+
 	function sfpg_javascript()
 	{
 		global $dirs, $images, $files, $misc;
-
 		echo "<script>
 		<!--
 
@@ -1253,6 +1258,12 @@
 			document.onkeyup = keyNavigate;	";
 		}
 		echo"
+
+		function isTouchDevice()
+		{
+			return 'ontouchstart' in window;
+		}
+
 
 		function getViewport()
 		{
@@ -1623,7 +1634,6 @@
 						info += '<strong>".sfpg_str_to_script(TEXT_DESCRIPTION)."</strong><br><div class=\"sfpg_info_text\">';
 						info += splint[29]+'<br>';
 						info += '</div><br>';
-
 						info += '<strong>".sfpg_str_to_script(TEXT_INFO)."</strong><br><div class=\"sfpg_info_text\">';
 						info += '".sfpg_str_to_script(TEXT_DATE).": '+dateFormat(splint[0])+'<br>';
 						info += '".sfpg_str_to_script(TEXT_IMAGESIZE).": '+splint[2]+' x '+splint[3]+'<br>';
@@ -1641,7 +1651,6 @@
 						info += '".sfpg_str_to_script(TEXT_FILESIZE).": '+splint[1]+'<br>';
 						info += '".sfpg_str_to_script(TEXT_IMAGE_NUMBER).": '+id+' / '+(imgLink.length-1)+'<br>';
 						info += '</div><br>';";
-
 						if (SHOW_EXIF_INFO)
 						{
 							echo"
@@ -1652,17 +1661,24 @@
 							}
 							else
 							{
-								info += '".sfpg_str_to_script(TEXT_EXIF_DATE).": '+dateFormat(splint[4])+'<br>';
-								info += '".sfpg_str_to_script(TEXT_EXIF_CAMERA).": '+splint[5]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_EXIF_ISO).": '+splint[6]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_EXIF_SHUTTER).": '+splint[7]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_EXIF_APERTURE).": '+splint[8]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_EXIF_FOCAL).": '+splint[9]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_EXIF_FLASH).": '+splint[10]+'<br>';
+								var exifInfo = (splint[4]!=''?'".sfpg_str_to_script(TEXT_EXIF_DATE).": '+dateFormat(splint[4])+'<br>':'');
+								exifInfo += (splint[5]!=''?'".sfpg_str_to_script(TEXT_EXIF_CAMERA).": '+splint[5]+'<br>':'');
+								exifInfo += (splint[6]!=''?'".sfpg_str_to_script(TEXT_EXIF_ISO).": '+splint[6]+'<br>':'');
+								exifInfo += (splint[7]!=''?'".sfpg_str_to_script(TEXT_EXIF_SHUTTER).": '+splint[7]+'<br>':'');
+								exifInfo += (splint[8]!=''?'".sfpg_str_to_script(TEXT_EXIF_APERTURE).": '+splint[8]+'<br>':'');
+								exifInfo += (splint[9]!=''?'".sfpg_str_to_script(TEXT_EXIF_FOCAL).": '+splint[9]+'<br>':'');
+								exifInfo += (splint[10]!=''?'".sfpg_str_to_script(TEXT_EXIF_FLASH).": '+splint[10]+'<br>':'');
+								if (exifInfo != '')
+								{
+									info += exifInfo;
+								}
+								else
+								{
+									info += '".sfpg_str_to_script(TEXT_EXIF_MISSING)."';
+								}
 							}
 							info += '</div><br>';";
 						}
-
 						if (SHOW_IPTC_INFO)
 						{
 							echo"
@@ -1673,24 +1689,32 @@
 							}
 							else
 							{
-								info += '".sfpg_str_to_script(TEXT_IPTC_TITLE).": '+splint[11]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_URGENCY).": '+splint[12]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_CATEGORY).": '+splint[13]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_SUBCATEGORIES).": '+splint[14]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_SPECIALINSTRUCTIONS).": '+splint[15]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_CREATIONDATE).": '+splint[16]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_AUTHORBYLINE).": '+splint[17]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_AUTHORTITLE).": '+splint[18]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_CITY).": '+splint[19]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_STATE).": '+splint[20]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_COUNTRY).": '+splint[21]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_OTR).": '+splint[22]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_HEADLINE).": '+splint[23]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_SOURCE).": '+splint[24]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_PHOTOSOURCE).": '+splint[25]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_COPYRIGHT).": '+splint[26]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_CAPTION).": '+splint[27]+'<br>';
-								info += '".sfpg_str_to_script(TEXT_IPTC_CAPTIONWRITER).": '+splint[28]+'<br>';
+								var iptcInfo = (splint[11]!=''?'".sfpg_str_to_script(TEXT_IPTC_TITLE).": '+splint[11]+'<br>':'');
+								iptcInfo += (splint[12]!=''?'".sfpg_str_to_script(TEXT_IPTC_URGENCY).": '+splint[12]+'<br>':'');
+								iptcInfo += (splint[13]!=''?'".sfpg_str_to_script(TEXT_IPTC_CATEGORY).": '+splint[13]+'<br>':'');
+								iptcInfo += (splint[14]!=''?'".sfpg_str_to_script(TEXT_IPTC_SUBCATEGORIES).": '+splint[14]+'<br>':'');
+								iptcInfo += (splint[15]!=''?'".sfpg_str_to_script(TEXT_IPTC_SPECIALINSTRUCTIONS).": '+splint[15]+'<br>':'');
+								iptcInfo += (splint[16]!=''?'".sfpg_str_to_script(TEXT_IPTC_CREATIONDATE).": '+splint[16]+'<br>':'');
+								iptcInfo += (splint[17]!=''?'".sfpg_str_to_script(TEXT_IPTC_AUTHORBYLINE).": '+splint[17]+'<br>':'');
+								iptcInfo += (splint[18]!=''?'".sfpg_str_to_script(TEXT_IPTC_AUTHORTITLE).": '+splint[18]+'<br>':'');
+								iptcInfo += (splint[19]!=''?'".sfpg_str_to_script(TEXT_IPTC_CITY).": '+splint[19]+'<br>':'');
+								iptcInfo += (splint[20]!=''?'".sfpg_str_to_script(TEXT_IPTC_STATE).": '+splint[20]+'<br>':'');
+								iptcInfo += (splint[21]!=''?'".sfpg_str_to_script(TEXT_IPTC_COUNTRY).": '+splint[21]+'<br>':'');
+								iptcInfo += (splint[22]!=''?'".sfpg_str_to_script(TEXT_IPTC_OTR).": '+splint[22]+'<br>':'');
+								iptcInfo += (splint[23]!=''?'".sfpg_str_to_script(TEXT_IPTC_HEADLINE).": '+splint[23]+'<br>':'');
+								iptcInfo += (splint[24]!=''?'".sfpg_str_to_script(TEXT_IPTC_SOURCE).": '+splint[24]+'<br>':'');
+								iptcInfo += (splint[25]!=''?'".sfpg_str_to_script(TEXT_IPTC_PHOTOSOURCE).": '+splint[25]+'<br>':'');
+								iptcInfo += (splint[26]!=''?'".sfpg_str_to_script(TEXT_IPTC_COPYRIGHT).": '+splint[26]+'<br>':'');
+								iptcInfo += (splint[27]!=''?'".sfpg_str_to_script(TEXT_IPTC_CAPTION).": '+splint[27]+'<br>':'');
+								iptcInfo += (splint[28]!=''?'".sfpg_str_to_script(TEXT_IPTC_CAPTIONWRITER).": '+splint[28]+'<br>':'');
+								if (iptcInfo != '')
+								{
+									info += iptcInfo;
+								}
+								else
+								{
+									info += '".sfpg_str_to_script(TEXT_IPTC_MISSING)."';
+								}
 							}
 							info += '</div><br>';";
 						}
@@ -1700,7 +1724,6 @@
 					{
 						info += '<br><strong>".sfpg_str_to_script(TEXT_FIRST_VIEW)."</strong><br><br><span id=\"img_size\"></span><span id=\"img_resize\"></span><br><br>';
 					}
-
 					info += '<strong>".sfpg_str_to_script(TEXT_LINKS)."</strong><br>';
 					info += '<a href=\"'+phpSelf+'?sfpg='+imgLink[id]+'\">".sfpg_str_to_script(TEXT_DIRECT_LINK_IMAGE)."</a><br>';
 					".(TEXT_DOWNLOAD ? "info += '<a href=\"'+phpSelf+'?cmd=dl&sfpg='+imgLink[id]+'\">".sfpg_str_to_script(TEXT_DOWNLOAD)."</a><br><br>';" : "")."
@@ -1949,7 +1972,7 @@
 				inp.setAttribute('name','elems[]');
 				inp.setAttribute('value',dirLink[selectedDirs[i]]);
 				selectForm.appendChild(inp);
-			}			
+			}
 			for (i=0; i<selectedImages.length; i++)
 			{
 				var inp = document.createElement('input');
@@ -1957,7 +1980,7 @@
 				inp.setAttribute('name','elems[]');
 				inp.setAttribute('value',imgLink[selectedImages[i]]);
 				selectForm.appendChild(inp);
-			}			
+			}
 			for (i=0; i<selectedFiles.length; i++)
 			{
 				var inp = document.createElement('input');
@@ -1965,7 +1988,7 @@
 				inp.setAttribute('name','elems[]');
 				inp.setAttribute('value',fileLink[selectedFiles[i]]);
 				selectForm.appendChild(inp);
-			}			
+			}
 			document.getElementsByTagName('body')[0].appendChild(selectForm);
 			document.getElementById('selectForm').submit();
 		}
@@ -2028,6 +2051,10 @@
 			else if (type=='file')
 			{
 				that.className='innerboxfile_hover';
+			}
+			if (isTouchDevice())
+			{
+				mouseClick(that, type, nr);
 			}
 		}
 
@@ -2192,12 +2219,10 @@
 			{
 				addElement(i, 'dir');
 			}
-
 			for (i = 1; i < imgLink.length; i++)
 			{
 				addElement(i, 'img');
 			}
-			
 			for (i = 1; i < fileLink.length; i++)
 			{
 				addElement(i, 'file');
@@ -2255,7 +2280,7 @@
 		}
 		echo "navLink[1] = '".sfpg_url_string('')."';\n";
 		echo "navName[1] = '".sfpg_str_to_script(TEXT_HOME)."';\n\n";
-		
+
 		$links = explode("/", GALLERY);
 		$gal_dirs = "";
 		if (GALLERY and is_array($links))
@@ -2315,12 +2340,18 @@
 			echo "dirLink[0] = '".sfpg_url_string("")."';\n";
 			echo "dirName[0] = '".sfpg_str_to_script(TEXT_HOME)."';\n";
 		}
-		
+		if ((DIR_THUMB_FILE) and file_exists(GALLERY_ROOT.GALLERY.DIR_THUMB_FILE))
+		{
+			$filed = explode("|", @file_get_contents(DATA_ROOT."info/".GALLERY.DIR_THUMB_FILE));
+			if (filemtime(GALLERY_ROOT.GALLERY.DIR_THUMB_FILE)!=$filed[0])
+			{
+				sfpg_delete_from_data_root(GALLERY.DIR_THUMB_FILE);
+			}
+		}
 		if (!file_exists(DATA_ROOT."info/".GALLERY."_sfpg_dir"))
 		{
 			sfpg_set_dir_info(GALLERY);
 		}
-
 		$filed = explode("|", file_get_contents(DATA_ROOT."info/".GALLERY."_sfpg_dir"));
 		if ((count($dirs) != $filed[0]) or (count($images) != $filed[1]) or (count($files) != $filed[2]))
 		{
@@ -2328,8 +2359,7 @@
 			$filed = explode("|", file_get_contents(DATA_ROOT."info/".GALLERY."_sfpg_dir"));
 		}
 		echo "dirThumb[0] = '".$filed[4]."';\n";
-		echo "dirInfo[0] = '".sfpg_str_to_script($filed[3]."|".$filed[0]."|".$filed[1]."|".$filed[2])."|".(in_array(DIR_DESC_FILE, $misc)?@sfpg_str_to_script(file_get_contents(GALLERY_ROOT.GALLERY.DIR_DESC_FILE), false):"")."';\n\n";
-		
+		echo "dirInfo[0] = '".sfpg_str_to_script($filed[3]."|".$filed[0]."|".$filed[1]."|".$filed[2]."|".(in_array(DIR_DESC_FILE, $misc)?@file_get_contents(GALLERY_ROOT.GALLERY.DIR_DESC_FILE):""),false,DESC_NL_TO_BR)."';\n\n";
 		$item = 1;
 		foreach ($dirs as $val)
 		{
@@ -2350,10 +2380,9 @@
 			}
 			$filed = explode("|", file_get_contents(DATA_ROOT."info/".GALLERY.$val."/_sfpg_dir"));
 			echo "dirThumb[".($item)."] = '".$filed[4]."';\n";
-			echo "dirInfo[".($item)."] = '".sfpg_str_to_script($filed[3]."|".$filed[0]."|".$filed[1]."|".$filed[2])."|".sfpg_str_to_script(@file_get_contents(GALLERY_ROOT.GALLERY.$val."/".DIR_DESC_FILE), false)."';\n\n";
+			echo "dirInfo[".($item)."] = '".sfpg_str_to_script($filed[3]."|".$filed[0]."|".$filed[1]."|".$filed[2]."|".@file_get_contents(GALLERY_ROOT.GALLERY.$val."/".DIR_DESC_FILE),false,DESC_NL_TO_BR)."';\n\n";
 			$item++;
 		}
-
 		$img_direct_link = FALSE;
 		$item = 1;
 		foreach ($images as $val)
@@ -2396,13 +2425,13 @@
 				{
 					$filed='';
 				}
-				echo "imgInfo[".($item)."] = '".sfpg_str_to_script($filed)."|".(in_array($val.DESC_EXT, $misc)?sfpg_str_to_script(@file_get_contents(GALLERY_ROOT.GALLERY.$val.DESC_EXT), false):"")."';\n";
+				echo "imgInfo[".($item)."] = '".sfpg_str_to_script($filed, true).(in_array($val.DESC_EXT, $misc)?sfpg_str_to_script(@file_get_contents(GALLERY_ROOT.GALLERY.$val.DESC_EXT),false,DESC_NL_TO_BR):"")."';\n";
 				if (PAYPAL_ENABLED)
 				{
 					$sell=(in_array($val.PAYPAL_EXTENSION,$misc)?@file(GALLERY_ROOT.GALLERY.$val.PAYPAL_EXTENSION,FILE_IGNORE_NEW_LINES):false);
 					if ($sell!=false)
 					{
-						echo "imgSell[".($item)."] = '".sfpg_str_to_script($sell[0], false, true)."|".sfpg_str_to_script($sell[1], false, true)."|".sfpg_str_to_script($sell[2], false, true)."';\n";
+						echo "imgSell[".($item)."] = '".sfpg_str_to_script($sell[0]."|".$sell[1]."|".$sell[2])."';\n";
 					}
 				}
 				$item++;
@@ -2416,7 +2445,6 @@
 		{
 			define("IMAGE_ID_IN_URL", FALSE);
 		}
-		
 		if (count($files))
 		{
 			$item = 1;
@@ -2448,13 +2476,34 @@
 					fwrite($fp, filemtime(GALLERY_ROOT.GALLERY.$val)."|".sfpg_file_size(filesize(GALLERY_ROOT.GALLERY.$val)));
 					fclose($fp);
 				}
-				echo "fileInfo[".($item)."] = '".sfpg_str_to_script(@file_get_contents(DATA_ROOT."info/".GALLERY.$val))."|".(in_array($val.DESC_EXT, $misc)?sfpg_str_to_script(@file_get_contents(GALLERY_ROOT.GALLERY.$val.DESC_EXT), false):"")."';\n\n";
+				echo "fileInfo[".($item)."] = '".sfpg_str_to_script(@file_get_contents(DATA_ROOT."info/".GALLERY.$val)."|".(in_array($val.DESC_EXT, $misc)?@file_get_contents(GALLERY_ROOT.GALLERY.$val.DESC_EXT):""),false,DESC_NL_TO_BR)."';\n\n";
 				$item++;
 			}
 		}
 		echo "
 		//-->
 		</script>";
+	}
+
+
+	if (SECURITY_PHRASE=='')
+	{
+		if ($sc=@file_get_contents($_SERVER['SCRIPT_FILENAME']))
+		{
+			$phrase=sfpg_random(30);
+			$nr_replace=0;
+			$sc=str_replace("define('SECURITY"."_PHRASE', '');","define('SECURITY_PHRASE', '".$phrase."');",$sc,$nr_replace);			
+			if ($nr_replace === 1)
+			{
+				if (file_put_contents($_SERVER['SCRIPT_FILENAME'],$sc))
+				{
+					header('Location: '.$_SERVER['PHP_SELF']);
+					exit;
+				}
+			}
+		}
+		echo 'You have to set the SECURITY_PHRASE in the top of the script! See readme.txt for description.';
+		exit;
 	}
 
 	if (PASSWORD!=='')
@@ -2480,6 +2529,7 @@
 				'<input type="password" name="pw" id="pw" autofocus>'.
 				'<input type="submit" name="su" value="'.TEXT_LOGIN.'">'.
 				'</form></body></html>';
+				session_write_close();
 				exit;
 			}
 		}
@@ -2589,10 +2639,7 @@
 
 	list($dirs, $images, $files, $misc) = sfpg_get_dir(GALLERY);
 
-	echo '<!DOCTYPE html><html><head>'.
-	'<meta charset='.CHARSET.'>'.
-	'<title>'.TEXT_GALLERY_NAME.'</title>'.
-	'<style>'.
+	echo '<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta charset="'.CHARSET.'"><title>'.TEXT_GALLERY_NAME.'</title><style>'.
 	"
 	img
 	{
@@ -2647,8 +2694,8 @@
 
 	table.sfpg_disp td.menu
 	{
-		background : #000000;
-		border-top : 1px solid #303030;
+		background : $color_menu_back;
+		border-top : 1px solid $color_menu_top;
 		vertical-align : middle;
 		white-space: nowrap;
 	}
@@ -2656,8 +2703,8 @@
 	table.sfpg_disp td.navi
 	{
 		height: ".NAV_BAR_HEIGHT."px;
-		background : #202020;
-		border-top : 1px solid #303030;
+		background : $color_navbar_back;
+		border-top : 1px solid $color_navbar_top;
 		vertical-align : middle;
 		white-space: nowrap;
 	}
@@ -2670,9 +2717,9 @@
 	.sfpg_info_text, .loading
 	{
 		".(ROUND_CORNERS?'border-radius: '.ROUND_CORNERS.'px;':'')."
-		background : #000000;
-		border : 1px solid #606060;
-		color : #aaaaaa;
+		background : $color_info_back;
+		border : 1px solid $color_info_border;
+		color : $color_info_text;
 		padding : 1px 4px 1px 4px;
 		width : 200px;
 	}
@@ -2718,9 +2765,9 @@
 
 	.sfpg_button_nav
 	{
-		border : 1px solid #404040;
-		background:#101010;
-		color:#808080;
+		border: 1px solid $color_button_nav_border;
+		background: $color_button_nav_back;
+		color: $color_button_nav_text;
 	}
 
 	.thumbbox, .descbox
@@ -2748,7 +2795,7 @@
 		margin: 0px; 
 		padding: 0px;
 	}
-	
+
 	.innerboxdir, .innerboximg, .innerboxfile, .innerboxdir_hover, .innerboximg_hover, .innerboxfile_hover, .innerbox_marked
 	{
 		".(ROUND_CORNERS?'border-radius: '.(ROUND_CORNERS*2).'px;':'')."
@@ -2890,8 +2937,8 @@
 		z-index:1040;
 		visibility:hidden;
 		overflow:auto;
-		border : 1px solid #404040;
-		background: #101010;
+		border : 1px solid $color_infobox_border;
+		background: $color_infobox_back;
 	}
 
 	.box_overlay
@@ -2931,17 +2978,8 @@
 		else
 		{
 			date_default_timezone_set('UTC');
-			$buyId=date('Ymd_His').'_';
-			for($i = 0; $i<16; $i++)
-			{
-				$tr=mt_rand(48,83);
-				$buyId.=chr(($tr>57?$tr+39:$tr));
-			}
-			if (!is_dir(DATA_ROOT.'buy/'))
-			{
-				mkdir(DATA_ROOT.'buy/', 0777, TRUE);
-			}
-			else
+			$buyId=date('Ymd_His').'_'.sfpg_random(16);
+			if (!sfpg_mkdir(DATA_ROOT.'buy/'))
 			{
 				$handle = opendir(DATA_ROOT.'buy/');
 				if ($handle != FALSE)

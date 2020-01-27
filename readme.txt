@@ -1,10 +1,10 @@
 
 
-		Single File PHP Gallery 4.5.6 (SFPG)
+		Single File PHP Gallery 4.5.7 (SFPG)
 
 		See END USER LICENSE AGREEMENT for commercial use
 
-		Released: 15-December-2014
+		Released: 20-May-2015
 		http://sye.dk/sfpg/
 		By Kenny Svalgaard
 
@@ -81,88 +81,33 @@ FEATURES
 ____________________________________________________________
 IMPORTANT INFORMATION
 
-* Versions of Single File PHP Gallery below 4.5.6 could allow specially crafted code embedded in images (in EXIF or IPTC) or in description files, to reach end users browser for execution. All users of the gallery, having or allowing images and/or description files from untrusted sources, should upgrade to this version to keep end users safe from this risk.
+* Make sure NOT to place any content from untrusted sources in the gallery. Code or scripts embedded in files could be sent to the end users, and could be executed.
 
 * The gallery contains an automatic clean-up function to have the gallery delete unused files in DATA_ROOT.
   The gallery will clean up files in the DATA_ROOT that are no longer used by the gallery. So make sure not to use the DATA_ROOT for storing anything.
   The clean up routine is activated when viewing a directory where the number of subdirectories, images and/or files have changed since last access to the directory.
-  For this to work, PHP needs permission to delete files in the DATA_ROOT.
+  For this to work, PHP needs permission to delete in the DATA_ROOT.
 
 * The gallery contains an option to delete images older than a set number of days. If using this option, make sure to have a backup of all your images in the GALLERY_ROOT.
-  For this to work, PHP needs permission to delete files in the GALLERY_ROOT.
+  For this to work, PHP needs permission to delete in the GALLERY_ROOT.
 
 * The gallery contains an option to allow users to delete directories, images and files from the gallery.
   If using this option, make sure that only administrators have access to the gallery.
   Do not put the gallery unprotected on a public web server with this setting enabled. See the ADMIN option for details.
-  For this to work, PHP needs permission to delete files in the GALLERY_ROOT.
+  For this to work, PHP needs permission to delete in the GALLERY_ROOT.
 
 ____________________________________________________________
 NEWS IN THIS VERSION
 
-* Improved security by adding HTML encoding of data sent to clients. See ALLOW_DESC_HTML option for information on how to enable HTML in descriptions.
-* Removed the NL_TO_BR option (line breaks in description files will now always be shown).
-* Upgrading from a previous version of the script requires the contents of the DATA_ROOT to be deleted.
-
-News from version 4.5.5 (13-December-2014):
-* Added image area navigation. Clicking the left third of the image area when showing an image will go to previous image. The right third will go to the next image. Clicking the image in the middel third of the image will close the image. Related buttons in bottom menu light up when hovering these areas. The middle third of the image area can also be used to zoom and/or move the image around when watching a large image in actual size on a touch device.
-* Added automatic recreation of data files, including thumbs and information, when images in GALLERY_ROOT are changed.
-* Added option to have a banner/header shown in the gallery. Can be used as a standard banner on all pages or individual per directory. See TEXT_BANNER and DIR_BANNER_FILE for information.
-* Moved the TEXT_CLOSE_IMG_VIEW button.
-* Fixed handling of backslashes in input like EXIF, IPTC and description files.
-* Fixed SHOW_IMAGE_DAYS not working correctly when not sorting by date in reverse order.
-* Fixed $color_img_hover, $color_img_hover_text, $color_file_hover and $color_file_hover_text not being used.
-
-News from version 4.5.0 (25-November-2014):
-* Added option to password protect the gallery. See the PASSWORD option for details.
-* Added option to enable delete functionality. Directories, images and files can be marked and deleted from within the gallery. See the ADMIN option for details.
-* Added option to sort images by date/time from EXIF aka when the image was take. See the IMAGE_EXIF_TIME option for details.
-* Added function to allow file-preview images to be used for gallery thumbnails.
-* Improved the option to use images as thumbs for files by extension. Setting $file_ext_thumbs is no longer needed, so the $file_ext_thumbs setting have been removed. See the ICONS_DIR option for details.
-* Changed constant name SORT_NATURAL to SORT_ALL_NATURAL because SORT_NATURAL is already defined by PHP.
-* Changed constant name DIR_IMAGE_FILE to DIR_THUMB_FILE because it is a more saying name. Also changed the default setting from '_image.jpg' to '_dir.jpg'.
-* Changed the DATE_FORMAT parameters.
-* Changing the DATE_FORMAT no longer require rebuild of DATA_ROOT to apply.
-* Upgrading from a previous version of the script requires the contents of the DATA_ROOT to be deleted.
-
-News from version 4.4.0 (31-October-2014):
-* Added 3D MPO image extraction, with red/cyan Anaglyph image and stereo image generation options.
-* Added option to set or disable the round corners on boxes.
-* Fixed "Empty regular expression" warning from showing on some servers.
-
-News from version 4.3.0 (2-October-2014):
-* Added option to enable slideshow.
-* Added option to only show a set number of images.
-* Added option to hide images older than a set number of days.
-* Added option to delete images older than a set number of days.
-* Added automatic clean-up function to have the gallery delete unused files in DATA_ROOT.
-* Added option to enable simple PayPal integration with inventory counter for selling.
-* Added option to show directory description inside the gallery using a new wider "thumb-box".
-* Added option to change the icons/watermark directory.
-* Added option to set an image to be used as thumb on all directories not containing images.
-* Added option to have the watermark scaled to a constant fraction of the full size image.
-* Added disabling of image navigation (buttons and keyboard), while loading image.
-* Improved disk performance by adding check of name and/or description files before trying to load them.
-* Improved JavaScript function to show full size image faster.
-* Improved full size image load to avoid fading in the previous image.
-* Fixed choosing of thumb for directories. Was an issue when using SORT_ALL_NATURAL, which is default.
-* Fixed handling of files and directories called "0" (zero).
-* Fixed so that information box does not close when using ESC to go one directory up.
-
-News from version 4.2.0 (8-September-2014):
-* Added keyboard navigation.
-* Added IPTC information extraction, to be shown in the information box.
-* Added option to use regular expressions for excluding directories, images and files.
-* Added option to use low quality thumb and preview generation, to save CPU usage on slow servers.
-* Added option to show information box by default.
-* Added option to remove information button.
-* Added round corners on thumbs and buttons.
-* Improved JavaScript fade function to better work on slow clients.
-* Improved change of full size image to avoid flicker on some systems.
-* Changed representation of EXIF date, so that it now shows like defined in DATE_FORMAT. Previous it was shown in plain EXIF format.
-* Fixed reverse natural sorting. When sorting natural and reverse, the reverse setting did not apply. It does now.
-* Fixed handling of images, files and folders containing two or more tailing dots.
-* Fixed check of read_exif_data function.
-* Other smaller fixes, improvements and adjustments.
+* Added touch device detection to work better on iOS (Making javascript onMouseOver events also act as onClick events)
+* Fixed/Added extraction of missing IPTC Creation Date.
+* Added check to hide empty fields in EXIF and IPTC information boxes. Only entries containing data will be shown.
+* Added the NL_TO_BR that was removed in previous version. It is now called DESC_NL_TO_BR.
+* Added meta viewport definition to better function with mobile devices.
+* Added automatic generation of SECURITY_PHRASE. See SECURITY_PHRASE section for details.
+* Fixed so that thumbnails for directories now also regenerate automatically if the source file time change. (You need to access the folder to trigger the regeneration).
+* Removed the ALLOW_DESC_HTML option. All descriptions are now treated as HTML.
+* Minor fixes and improvements.
 
 
 ____________________________________________________________
@@ -253,14 +198,16 @@ Example 3: '/users/bob_the_user/data/sfpg_thumbs/'
 
 
 ____________________________________________________________
-define('SECURITY_PHRASE', 'change this text!');
+define('SECURITY_PHRASE', '');
 
-Set this option to a random phrase or a number of random chars, and don't tell anyone! The string will be used to make the gallery URL's tamper resistant to avoid creative or malicious use.
+Manually set, or have the gallery generate a random phrase. The SECURITY_PHRASE is used to make the gallery URL's tamper resistant to avoid creative or malicious use.
 
-Data stored in the DATA_ROOT uses this phrase. So if this option is changed, the contents of DATA_ROOT directory should be deleted. It will then regenerate automatically.
+If the gallery is accessed and this option is not set, then the gallery will insert a random string of chars into the script. This string will also be saved in the DATA_ROOT in a file called "security_phrase.php". If this file exists while the gallery is accessed and the SECURITY_PHRASE option is not set, then the string will be reused. This is to avoid having to delete the entire DATA_ROOT, when upgrading or starting over with a fresh copy of the gallery.
 
-Example 1: 'hTfw9nTr4d'
-Example 2: 'Maerc.Eci,Ekil-i'
+If the script can't edit itself, a text is displayed, explaining that the SECURITY_PHRASE have to be set manually.
+
+INFO: PHP needs permissions to edit the script itself, for the script to set the SECURITY_PHRASE automatically.
+INFO: Data stored in the DATA_ROOT uses this phrase. So if this option is changed, the contents of DATA_ROOT directory must be deleted. The data will then regenerate automatically. Also if this option is changed all URLs/links containing the sfpg parameter will end up in the root of the gallery.
 
 
 ____________________________________________________________
@@ -339,7 +286,7 @@ ____________________________________________________________
 define('DIR_DESC_FILE', '_desc.txt');
 
 Set the name of the description file that can be placed in every directory of the gallery (including the GALLERY_ROOT).
-If a file with the given name is found, the text will be shown in the gallery. The text can include HTML tags.
+If a file with the given name is found, the text will be shown in the gallery. Text can include HTML tags.
 
 IMPORTANT: The file name in this setting must end with the extension in DESC_EXT. Default value for DESC_EXT is '.txt'.
 INFO: See DIR_DESC_IN_GALLERY and DIR_DESC_IN_INFO for placing the description in the gallery.
@@ -349,7 +296,7 @@ ____________________________________________________________
 define('DIR_BANNER_FILE', '_banner.txt');
 
 Set the name of the banner file that can be placed in every directory of the gallery (including the GALLERY_ROOT).
-If a file with the given name is found, the text in the file will be shown in the gallery, above the thumbnail boxes. The text can include HTML tags.
+If a file with the given name is found, the text in the file will be shown in the gallery, above the thumbnail boxes. Text can include HTML tags.
 
 If the TEXT_BANNER option is defined, and the DIR_BANNER_FILE is found in a directory, only the DIR_BANNER_FILE text is displayed in the gallery.
 
@@ -618,18 +565,6 @@ Chinese Traditional:       'big5'
 
 
 ____________________________________________________________
-define('ALLOW_DESC_HTML', FALSE);
-
-** WARNING ** SETTING THIS OPTION TO TRUE WILL ALLOW HTML INCLUDING SCRIPTS TO BE READ FROM DESCRIPTION FILES AND DELIVERED TO END USERS **
-
-Set to TRUE to allow description files to be sent as HTML to the client.
-Set to FALSE to not allow HTML in description.
-
-IMPORTANT: If this is set to TRUE, you should make sure that all description files do not contain scripts of any kind.
-IMPORTANT: If this is set to TRUE, you should NOT accept description files from untrusted sources.
-
-
-____________________________________________________________
 define('DATE_FORMAT', 'Day Date Month Year Hour:Min:Sec');
 
 Set the format of the date/time to be used in the gallery.
@@ -659,6 +594,13 @@ Example: If set to '.txt' and one of the images is named
 
 If SHOW_FILES is set to TRUE you can use $file_ext_exclude to exclude the description files from the view. So if you would like to list .txt but don't want the descriptions files shown, you should set to any other extension that you do not use (feel free to use ".sfpg") and exclude that one using $file_ext_exclude.
 	 
+
+____________________________________________________________
+define('DESC_NL_TO_BR', FALSE);
+
+Set to TRUE to have line breaks in description files translated to the HTML <br> tag, to act as a line break in the browser.
+Set to FALSE to ignore line breaks in description files. To make a line break with this setting, simply add <br> at the end of each line in the description file.
+
 
 ____________________________________________________________
 define('SORT_DIVIDER', '--');
@@ -1603,6 +1545,23 @@ $color_desc_box_border = '#404040';
 $color_desc_box_back = '#202020';
 $color_desc_box_text = '#aaaaaa';
 
+$color_menu_back = '#000000';
+$color_menu_top = '#303030';
+
+$color_navbar_back = '#202020';
+$color_navbar_top = '#303030';
+
+$color_button_nav_border = '#404040';
+$color_button_nav_back = '#101010';
+$color_button_nav_text ='#808080';
+
+$color_info_back = '#000000';
+$color_info_border = '#606060';
+$color_info_text = '#aaaaaa';
+
+$color_infobox_border = '#404040';
+$color_infobox_back ='#101010';
+
 $color_button_border = '#808080';
 $color_button_back = '#000000';
 $color_button_text = '#aaaaaa';
@@ -1615,7 +1574,6 @@ $color_button_on = '#aaaaaa';
 $color_button_text_on = '#000000';
 
 $color_overlay = '#000000';
-$color_menu_hover = '#ffffff';
 
 
 ____________________________________________________________
