@@ -21,6 +21,7 @@
 	option("URL_SEPARATOR", "*");
 	option("CRYPTIC_URL", FALSE);
 	option("PRETTY_URL", TRUE); // for usage with MOD_REWRITE
+	option("ZIP_ON_THE_FLY_ENABLE", TRUE);
 	//	--------------------------------------------
 
 	option('GALLERY_ROOT', './');
@@ -89,6 +90,7 @@
 	option('TEXT_ZIP_NOTHING', 'Nothing to zip.');
 	option('TEXT_ZIP_DL', 'Download all images in this directory as a zip file:');
 	option('TEXT_ZIP_BUTTON', 'Generate zip-file and download');
+	option('TEXT_ZIP_BUTTON_LIVE', 'Download gallery');
 	option('TEXT_ZIP_WAIT', 'Zip is being generated. Please wait...');
 
 	option('THUMB_MAX_WIDTH', 200);
@@ -1814,6 +1816,14 @@
 							info += '<br>".sts(TEXT_ZIP_DL)."<br><br>';
 							info += '<span id=\"zipspan\"><form method=\"post\" id=\"zipform\"><input type=\"password\" id=\"password\" name=\"password\"><input type=\"hidden\" name=\"zipdl\" value=\"x\"></form><span class=\"sfpg_button\" onclick=\"generateZip()\">".sts(TEXT_ZIP_BUTTON)."</span></span><br><br>';"; // the password input is to make sure that web crawlers do not post the form
 					}
+					if (ZIP_ON_THE_FLY_ENABLE)
+					{
+						echo "
+							if (dirInfo[id]['dirSize']) {
+								info += '<br>".sts(TEXT_ZIP_DL)."<br><br>';
+								info += '<a class=\"sfpg_button\" href=\"'+phpSelf+'?cmd=download_live&sfpg='+dirInfo[id]['dirLink']+'\">".sts(TEXT_ZIP_BUTTON_LIVE)." (ZIP, '+dirInfo[id]['dirSize']+')</a><br>';
+							}\n";
+					}
 					echo "
 				}
 				else if (type == 'img')
@@ -3011,6 +3021,10 @@
 		{
 			$dir_info['dirDesc'] = clean_html($desc);
 		}
+		if (ZIP_ON_THE_FLY_ENABLE)
+		{
+			$dir_info['dirSize'] = trim(shell_exec('du -h -c "'.GALLERY_ROOT.GALLERY.'" | tail -n1 | cut -f1 '));
+		}
 		echo_js_array('dirInfo', 0, $dir_info, DESC_NL_TO_BR);
 
 		//Load comment from comment file (if there is any)
@@ -3331,6 +3345,34 @@
 				$prefix = GALLERY_ROOT;
 			}
 			header('Location: '.$prefix.GALLERY.IMAGE);
+			exit;
+		}
+
+		if (ZIP_ON_THE_FLY_ENABLE && $_GET["cmd"] == "download_live")
+		{
+			set_time_limit(60*60);
+
+			$zipname = str_replace("/", "", GALLERY);
+			if ($zipname == '') $zipname = 'gallery';
+
+			header('Content-Type: application/octet-stream');
+			header('Content-disposition: attachment; filename="'.$zipname.'.zip"');
+
+			// use popen to execute a unix command pipeline
+			// and grab the stdout as a php stream
+			// (you can use proc_open instead if you need to
+			// control the input of the pipeline too)
+			//
+			$fp = popen('zip -0 -j - "'.GALLERY_ROOT.GALLERY.'"*', 'r');
+
+			// pick a bufsize that makes you happy (8192 has been suggested).
+			$bufsize = 8192;
+			$buff = '';
+			while( !feof($fp) ) {
+				$buff = fread($fp, $bufsize);
+				echo $buff;
+			}
+			pclose($fp);
 			exit;
 		}
 	}
