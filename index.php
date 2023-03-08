@@ -2,13 +2,13 @@
 
 	/*
 
-		Single File PHP Gallery 4.9.0 (SFPG)
+		Single File PHP Gallery 4.11.0 (SFPG)
 
 		See EULA in readme.txt for commercial use
 		See readme.txt for configuration
 
-		Released: 26-feb-2022
-		http://sye.dk/sfpg/
+		Released: 6-october-2022
+		https://sye.dk/sfpg/
 		by Kenny Svalgaard
 
 	*/
@@ -32,8 +32,7 @@
 	option('DIR_DESC_IN_INFO', TRUE);
 	option('DIR_SORT_REVERSE', FALSE);
 	option('DIR_SORT_BY_TIME', FALSE);
-	option('DIR_EXCLUDE', ['_sfpg_data', '_sfpg_icons']);  // Use only lower case.
-
+	option('DIR_EXCLUDE', ['_sfpg_data', '_sfpg_zip', '_sfpg_icons']);  // Use only lower case.
 	option('DIR_EXCLUDE_REGEX', '');
 
 	option('SHOW_IMAGE_EXT', FALSE);
@@ -51,7 +50,7 @@
 	option('FILE_THUMB_DEFAULT', '');
 	option('FILE_SORT_REVERSE', FALSE);
 	option('FILE_SORT_BY_TIME', FALSE);
-	option('FILE_EXCLUDE', []);  // Use only lower case.
+	option('FILE_EXCLUDE', ['_sfpg_zip']);  // Use only lower case.
 	option('FILE_EXT_EXCLUDE', ['.php', '.txt', '.sell']);  // Use only lower case.
 	option('FILE_EXCLUDE_REGEX', '');
 
@@ -68,8 +67,22 @@
 	option('UNDERSCORE_AS_SPACE', TRUE);
 	option('SHOW_EXIF_INFO', TRUE);
 	option('SHOW_IPTC_INFO', TRUE);
+	option('PNG_TEXT_CHUNKS', TRUE);  // Use only lower case when set to an array.
 	option('SHOW_INFO_BY_DEFAULT', FALSE);
 	option('ROUND_CORNERS', 3);
+
+	option('ZIP_ENABLE', FALSE);
+	option('ZIP_FILES', FALSE);
+	option('ZIP_FILE_THUMBS', FALSE);
+	option('ZIP_SUB_GALLERIES', FALSE);
+	option('ZIP_DESCRIPTIONS', FALSE);
+	option('ZIP_COMPRESSION', FALSE);
+	option('ZIP_CACHE_DAYS', 180);
+	option('TEXT_ZIP_ROOT_NAME', 'Single File PHP Gallery');
+	option('TEXT_ZIP_NOTHING', 'Nothing to zip.');
+	option('TEXT_ZIP_DL', 'Download all images in this directory as a zip file:');
+	option('TEXT_ZIP_BUTTON', 'Generate zip-file and download');
+	option('TEXT_ZIP_WAIT', 'Zip is being generated. Please wait...');
 
 	option('THUMB_MAX_WIDTH', 200);
 	option('THUMB_MAX_HEIGHT', 150);
@@ -77,8 +90,8 @@
 	option('THUMB_ENLARGE', FALSE);
 	option('THUMB_JPEG_QUALITY', 75);
 	option('THUMB_PNG_ALPHA', TRUE);
-
 	option('LOW_IMAGE_RESAMPLE_QUALITY', FALSE);
+
 	option('KEYBOARD_NAVIGATION', TRUE);
 	option('WATERMARK', '');
 	option('WATERMARK_FRACTION', 0.1);
@@ -131,6 +144,8 @@
 	option('TEXT_PAYPAL_REDIRECT', 'Redirecting to PayPal. Please wait...');
 
 	option('HTML_LANGUAGE', 'en-US');
+	option('TEXT_DAYS', "['Sun','Mon','Tue','Wed','Thu','Fri','Sat']");
+	option('TEXT_MONTHS', "['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']");
 
 	option('TEXT_GALLERY_NAME', 'Single File PHP Gallery');
 	option('TEXT_BANNER', '');
@@ -204,6 +219,7 @@
 	option('TEXT_EXIF_MAP_EMBED', 'Image map');
 	option('EXIF_MAP_EMBED_LINK', 'https://maps.google.com/maps?q=[lat],[long]&output=embed');
 
+	option('TEXT_PNG_CHUNKS', 'PNG text chunks');
 	option('TEXT_IPTC', 'IPTC');
 
 	option('IPTC', [
@@ -374,7 +390,7 @@
 	function sfpg_url_decode($string)
 	{
 		$get = explode('*', sfpg_base64url_decode($string));
-		if ((hash('sha256', $get[0].'*'.$get[1].'*'.SECURITY_PHRASE) === $get[2]) and (strpos(GALLERY_ROOT.$get[0].$get[1], '/../') === FALSE) and (strpos($get[0].$get[1], '\\') === FALSE))
+		if (is_array($get) and (count($get)==3) and (hash('sha256', $get[0].'*'.$get[1].'*'.SECURITY_PHRASE) === $get[2]) and (strpos(GALLERY_ROOT.$get[0].$get[1], '/../') === FALSE) and (strpos($get[0].$get[1], '\\') === FALSE))
 		{
 			return [$get[0], $get[1]];
 		}
@@ -627,7 +643,7 @@
 	}
 
 
-	function sfpg_get_dir($dir, $for_dir_info=FALSE)
+	function sfpg_get_dir($dir, $for_dir_info=FALSE, $for_zip=FALSE)
 	{
 		$dirs = [];
 		$dirs_time = [];
@@ -636,7 +652,7 @@
 		$files = [];
 		$files_time = [];
 		$misc = [];
-		$directory_handle = opendir(GALLERY_ROOT.$dir);
+		$directory_handle = @opendir(GALLERY_ROOT.$dir);
 		if ($directory_handle != FALSE)
 		{
 			while(($var=readdir($directory_handle))!==false)
@@ -712,7 +728,7 @@
 			{
 				$misc = 0;
 			}
-			if (SHOW_FILES)
+			if (SHOW_FILES and !($for_zip and ZIP_FILES and ZIP_FILE_THUMBS)) // removes thumbnail images from being listed as images. Unless needed for zip.
 			{
 				foreach ($files as $val)
 				{
@@ -739,8 +755,66 @@
 		}
 		else
 		{
-			header('Location: '.$_SERVER['PHP_SELF']);
+			if ($dir=='')
+			{
+				exit('GALLERY_ROOT is not is not accessible.');
+			}
+			else
+			{
+				header('Location: '.$_SERVER['PHP_SELF']);
+			}
 			exit;
+		}
+	}
+
+
+	function get_files_for_zip($dir_to_zip)
+	{
+		list($dirs, $images, $files, $misc) = sfpg_get_dir($dir_to_zip,FALSE,TRUE);
+		$zip_list = $images;
+		if (ZIP_FILES)
+		{
+			$zip_list = array_merge($zip_list, $files);
+		}
+		if (ZIP_DESCRIPTIONS)
+		{
+			$zip_list = array_merge($zip_list, $misc);
+		}
+		for($i=0; $i<count($zip_list); $i++)
+		{
+			$zip_list[$i] = $dir_to_zip.$zip_list[$i];
+		}
+		if (ZIP_SUB_GALLERIES)
+		{
+			foreach($dirs as $dir)
+			{
+				$zip_list = array_merge($zip_list, get_files_for_zip($dir_to_zip.$dir.'/'));
+			}
+		}
+		return $zip_list;
+	}
+
+
+	function cleanup_zip_days($time, $dir)
+	{
+		$items = array_diff(scandir($dir),['.','..']);
+		if (count($items)==0)
+		{
+			rmdir($dir);
+		}
+		else
+		{
+			foreach($items as $item)
+			{
+				if (is_dir($dir.'/'.$item))
+				{
+					cleanup_zip_days($time, $dir.'/'.$item);
+				}
+				elseif (filemtime($dir.'/'.$item) < $time)
+				{
+					unlink($dir.'/'.$item);
+				}
+			}
 		}
 	}
 
@@ -858,13 +932,16 @@
 					{
 						if (SHOW_EXIF_INFO)
 						{
-							$exif_data = exif_read_data(GALLERY_ROOT.$image_dir.$image_file, 'IFD0');
+							$exif_data = @exif_read_data(GALLERY_ROOT.$image_dir.$image_file, 'IFD0');
 							if ($exif_data !== FALSE)
 							{
 								if(isset($exif_data['DateTimeOriginal']))
 								{
 									$exif_time = explode(':', str_replace(' ', ':', $exif_data['DateTimeOriginal']));
-									$image_info['exifDate'] = block_html(mktime($exif_time[3], $exif_time[4], $exif_time[5], $exif_time[1], $exif_time[2], $exif_time[0]));
+									if(count($exif_time)==6)
+									{
+										$image_info['exifDate'] = block_html(mktime((int)$exif_time[3], (int)$exif_time[4], (int)$exif_time[5], (int)$exif_time[1], (int)$exif_time[2], (int)$exif_time[0]));
+									}
 								}
 								if (isset($exif_data['Model']))
 								{
@@ -902,10 +979,10 @@
 								{
 									$lat = $exif_data['GPSLatitude'];
 									$lng = $exif_data['GPSLongitude'];
-									$image_info['exifGPSLatitude'] = block_html(sfpg_div_num($lat[0])).'&deg;'.block_html(sfpg_div_num($lat[1]).'\''.sfpg_div_num($lat[2]).'"'.$exif_data['GPSLatitudeRef']);
-									$image_info['exifGPSLongitude'] = block_html(sfpg_div_num($lng[0])).'&deg;'.block_html(sfpg_div_num($lng[1]).'\''.sfpg_div_num($lng[2]).'"'.$exif_data['GPSLongitudeRef']);
-									$image_info['exifGPSLatitudeDec'] = block_html(round(((sfpg_div_num($lat[0]) + sfpg_div_num($lat[1])/60 + sfpg_div_num($lat[2])/3600)*($exif_data['GPSLatitudeRef']=='N'?1:-1)),12)); // limited to 12 decimals
-									$image_info['exifGPSLongitudeDec'] = block_html(round(((sfpg_div_num($lng[0]) + sfpg_div_num($lng[1])/60 + sfpg_div_num($lng[2])/3600)*($exif_data['GPSLongitudeRef']=='W'?-1:1)),12));  // limited to 12 decimals
+									$image_info['exifGPSLatitude'] = block_html(sfpg_div_num($lat[0])).'&deg;'.block_html(sfpg_div_num($lat[1]).'\''.sfpg_div_num($lat[2]).'"'.@$exif_data['GPSLatitudeRef']);
+									$image_info['exifGPSLongitude'] = block_html(sfpg_div_num($lng[0])).'&deg;'.block_html(sfpg_div_num($lng[1]).'\''.sfpg_div_num($lng[2]).'"'.@$exif_data['GPSLongitudeRef']);
+									$image_info['exifGPSLatitudeDec'] = block_html(round(((sfpg_div_num($lat[0]) + sfpg_div_num($lat[1])/60 + sfpg_div_num($lat[2])/3600)*(@$exif_data['GPSLatitudeRef']=='N'?1:-1)),12)); // limited to 12 decimals
+									$image_info['exifGPSLongitudeDec'] = block_html(round(((sfpg_div_num($lng[0]) + sfpg_div_num($lng[1])/60 + sfpg_div_num($lng[2])/3600)*(@$exif_data['GPSLongitudeRef']=='W'?-1:1)),12));  // limited to 12 decimals
 								}
 							}
 						}
@@ -1019,6 +1096,47 @@
 								if (isset($iptcParsed[$iptcID]))
 								{
 									$image_info[$iptcID] = block_html($iptcParsed[$iptcID][0]);
+								}
+							}
+						}
+					}
+					if (PNG_TEXT_CHUNKS and (sfpg_ext($image_file)=='.png'))
+					{
+						if ($png_fp = @fopen(GALLERY_ROOT.$image_dir.$image_file, 'rb'))
+						{
+							if("\x89PNG\x0d\x0a\x1a\x0a" === fread($png_fp, 8)) // first 8 bytes in a PNG must be like this
+							{
+								$png_text_chunks=[];
+								while(!feof($png_fp))
+								{
+									$chunk_info = @unpack('Nlength/a4type', fread($png_fp, 8));
+									if(!$chunk_info or ($chunk_info['type'] == 'IEND'))
+									{
+										break;
+									}
+									if($chunk_info['type'] == 'tEXt')
+									{
+										$chunk_data = fread($png_fp, $chunk_info['length']);
+										$chunk_crc = @unpack('Ncrc', fread($png_fp, 4));
+										if($chunk_crc and ($chunk_crc['crc'] === crc32($chunk_info['type'].$chunk_data)))
+										{
+											list($keyword, $value) = explode("\0", $chunk_data);
+											if((PNG_TEXT_CHUNKS === TRUE) or ((is_array(PNG_TEXT_CHUNKS)) and (in_array(strtolower($keyword), PNG_TEXT_CHUNKS))))
+											{
+												$png_text_chunks[]=$keyword;
+												$png_text_chunks[]=$value;
+											}
+										}
+									}
+									else
+									{
+										fseek($png_fp, $chunk_info['length']+4, SEEK_CUR); // skipping the chunk + crc
+									}
+								}
+								fclose($png_fp);
+								if(count($png_text_chunks)>0)
+								{
+									$image_info['pngChunks'] = $png_text_chunks;
 								}
 							}
 						}
@@ -1221,6 +1339,7 @@
 		sfpg_delete(DATA_ROOT.'info/'.$element);
 		sfpg_delete(DATA_ROOT.'thumb/'.$element);
 		sfpg_delete(DATA_ROOT.'image/'.$element);
+		sfpg_delete(DATA_ROOT.'zip/'.$element);
 	}
 
 
@@ -1255,7 +1374,21 @@
 			echo $name.'['.$id.'] = {';
 			foreach($array as $key=>$val)
 			{
-				echo $sep.'"'.$key.'":"'.sts($val, $nl_to_br).'"';
+				if(is_array($val))
+				{
+					$arrSep='';
+					echo $sep.'"'.$key.'":[';
+					foreach($val as $v)
+					{
+						echo $arrSep.'"'.sts($v, $nl_to_br).'"';
+						$arrSep=', ';
+					}
+					echo ']';
+				}
+				else
+				{
+					echo $sep.'"'.$key.'":"'.sts($val, $nl_to_br).'"';
+				}
 				$sep=', ';
 			}
 			echo "};\n";
@@ -1574,8 +1707,8 @@
 		function dateFormat(timestamp)
 		{
 			var dt = new Date(timestamp*1000);
-			var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-			var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+			var days = ".TEXT_DAYS.";
+			var months = ".TEXT_MONTHS.";
 			var year = dt.getFullYear();
 			var nrmon = dt.getMonth()+1;
 			var month = months[dt.getMonth()];
@@ -1587,6 +1720,11 @@
 			return '".$date_format."';
 		}
 
+		function generateZip()
+		{
+			gebi('zipform').submit();
+			gebi('zipspan').innerHTML = '".TEXT_ZIP_WAIT."';
+		}
 
 		function fillInfo(type, id)
 		{
@@ -1630,7 +1768,14 @@
 						";
 					}
 					echo "
-					info += '<strong>".sts(TEXT_LINKS)."</strong><br><a href=\"'+phpSelf+'?sfpg='+dirInfo[id]['dirLink']+'\">".sts(TEXT_DIRECT_LINK_GALLERY)."</a><br><br>';
+					info += '<strong>".sts(TEXT_LINKS)."</strong><br><a href=\"'+phpSelf+'?sfpg='+dirInfo[id]['dirLink']+'\">".sts(TEXT_DIRECT_LINK_GALLERY)."</a><br>';";
+					if (ZIP_ENABLE)
+					{
+						echo "
+							info += '<br>".sts(TEXT_ZIP_DL)."<br><br>';
+							info += '<span id=\"zipspan\"><form method=\"post\" id=\"zipform\"><input type=\"password\" id=\"password\" name=\"password\"><input type=\"hidden\" name=\"zipdl\" value=\"x\"></form><span class=\"sfpg_button\" onclick=\"generateZip()\">".sts(TEXT_ZIP_BUTTON)."</span></span><br><br>';"; // the password input is to make sure that web crawlers do not post the form
+					}
+					echo "
 				}
 				else if (type == 'img')
 				{
@@ -1737,6 +1882,22 @@
 								info += '<strong>".sts(TEXT_IPTC)."</strong><br><div class=\"sfpg_info_text\">'+iptcInfo+'</div><br>';
 							}";
 						}
+						if (PNG_TEXT_CHUNKS)
+						{
+							echo"
+							if (isDef(imgInfo[id]['pngChunks']))
+							{
+								info += '<strong>".sts(TEXT_PNG_CHUNKS)."</strong><br><div class=\"sfpg_info_text\">';
+								var brsep='';
+								for (i=0; i<imgInfo[id]['pngChunks'].length; i=i+2)
+								{
+									info += brsep+'<b>'+imgInfo[id]['pngChunks'][i]+'</b><br>'+imgInfo[id]['pngChunks'][i+1];
+									brsep='<br><br>';
+								}
+								info += '</div><br>';
+							}
+							";
+						}
 						echo"
 					}
 					else
@@ -1773,7 +1934,7 @@
 					}
 					echo "
 				}
-				info += '<br><small><a href=\"http://sye.dk/sfpg/\" target=\"_blank\" alt=\"\">Single File PHP Gallery</a></small>';
+				info += '<br><br><small><a href=\"https://sye.dk/sfpg/\" target=\"_blank\" alt=\"\">Single File PHP Gallery</a></small>';
 				gebi('box_inner_info').innerHTML = info;
 			}
 		}
@@ -2642,9 +2803,9 @@
 			echo "
 			function paypal(id)
 			{
-				var SelfUrl = '".RETURN_PROTOCOL."://".$_SERVER['DOMAIN_NAME'].$_SERVER['PHP_SELF']."';
+				var SelfUrl = '".RETURN_PROTOCOL."://".@$_SERVER['DOMAIN_NAME'].$_SERVER['PHP_SELF']."';
 				gebi('paypalReturn').value = SelfUrl+'?sold=1';
-				gebi('paypalCancelReturn').value = SelfUrl+'?sfpg=".(sfpg_url_decode($_GET['sfpg'])!=FALSE?$_GET['sfpg']:'')."&info=1';
+				gebi('paypalCancelReturn').value = SelfUrl+'?sfpg=".(sfpg_url_decode(@$_GET['sfpg'])!=FALSE?$_GET['sfpg']:'')."&info=1';
 				gebi('paypalAmount').value = imgInfo[id]['sellPrice'];
 				gebi('paypalItemName').value = imgInfo[id]['imageName'];
 				if(isDef(imgInfo[id]['sellID']))
@@ -2684,12 +2845,12 @@
 					$a_links[] = $gal_dirs;
 				}
 			}
-			$link_disp_lenght = strlen(TEXT_HOME) + 4;
+			$link_disp_length = strlen(TEXT_HOME) + 4;
 			$start_link = count($a_names)-1;
 			for($i = count($a_names)-1; $i >= 0; $i--)
 			{
-				$link_disp_lenght += strlen($a_names[$i]) + 5;
-				if ($link_disp_lenght < NAVI_CHARS_MAX)
+				$link_disp_length += strlen($a_names[$i]) + 5;
+				if ($link_disp_length < NAVI_CHARS_MAX)
 				{
 					$start_link = $i;
 				}
@@ -2725,7 +2886,7 @@
 			$current_dir_link = sfpg_url_string('');
 			$current_dir_name = TEXT_HOME;
 		}
-		if ((DIR_THUMB_FILE) and file_exists(GALLERY_ROOT.GALLERY.DIR_THUMB_FILE))
+		if ((DIR_THUMB_FILE) and file_exists(GALLERY_ROOT.GALLERY.DIR_THUMB_FILE) and file_exists(DATA_ROOT.'info/'.GALLERY.DIR_THUMB_FILE))
 		{
 			$filed=unserialize(file_get_contents(DATA_ROOT.'info/'.GALLERY.DIR_THUMB_FILE));
 			if (filemtime(GALLERY_ROOT.GALLERY.DIR_THUMB_FILE)!=$filed['fileMTime'])
@@ -2868,7 +3029,7 @@
 					{
 						$image_info['sellPrice'] = $sell[0];
 						$image_info['sellStatus'] = $sell[1];
-						if (trim($sell[2])!='')
+						if (trim(@$sell[2])!='')
 						{
 							$image_info['sellID'] = $sell[2];
 						}
@@ -2912,8 +3073,8 @@
 					$file_info['fileThumb']=sfpg_url_string(ICONS_DIR, FILE_THUMB_DEFAULT);
 				}
 				$file_info['fileName']=sfpg_display_name($val, SHOW_FILE_EXT);
-				$file_info['fileTime']=filemtime(GALLERY_ROOT.GALLERY.$val);
-				$file_info['fileSize']=sfpg_file_size(filesize(GALLERY_ROOT.GALLERY.$val));
+				$file_info['fileTime']=@filemtime(GALLERY_ROOT.GALLERY.$val);
+				$file_info['fileSize']=sfpg_file_size(@filesize(GALLERY_ROOT.GALLERY.$val));
 				if (in_array($val.DESC_EXT, $misc))
 				{
 					$desc=@file_get_contents(GALLERY_ROOT.GALLERY.$val.DESC_EXT);
@@ -2932,7 +3093,7 @@
 	if (!defined('SECURITY_PHRASE'))
 	{
 		sfpg_mkdir(DATA_ROOT);
-		file_put_contents(DATA_ROOT.'sp.php',"<?php option('SECURITY_PHRASE', '".sfpg_random(30)."'); ?>");
+		file_put_contents(DATA_ROOT.'sp.php',"<?php if(function_exists('option')) option('SECURITY_PHRASE', '".sfpg_random(30)."'); ?>");
 		@include(DATA_ROOT.'sp.php');
 		if (!defined('SECURITY_PHRASE'))
 		{
@@ -2995,54 +3156,131 @@
 		define('IMAGE', '');
 	}
 
-	if (isset($_GET['cmd']))
+	if (ZIP_ENABLE and isset($_POST['zipdl']))
 	{
-		if ($get_set)
+		sfpg_mkdir(DATA_ROOT.'zip');
+		$zip_link='./_sfpg_zip';
+		if (!is_link($zip_link))
 		{
-			if ($_GET['cmd'] == 'thumb')
+			if (!symlink(realpath(DATA_ROOT.'zip'), $zip_link))
 			{
-				sfpg_image(GALLERY, IMAGE, 'thumb');
+				echo 'Unable to create symlink for zip download.';
 				exit;
 			}
-
-			if ($_GET['cmd'] == 'image')
+		}
+		if (ZIP_CACHE_DAYS !== FALSE)
+		{
+			cleanup_zip_days(time()-(ZIP_CACHE_DAYS*86400), DATA_ROOT.'zip');
+		}
+		$files_for_zip = get_files_for_zip(GALLERY);
+		if (count($files_for_zip)>0)
+		{
+			sort($files_for_zip); // sorting before hash to make sure that hash function gets input in same order every time.
+			$zip_hash = hash('sha256', serialize($files_for_zip));
+			
+			$zip_dir = DATA_ROOT.'zip/'.GALLERY;
+			if (GALLERY == '')
 			{
-				sfpg_image(GALLERY, IMAGE, 'image');
-				exit;
+				$zip_name = TEXT_ZIP_ROOT_NAME.'.zip';
 			}
-
-			if (($_GET['cmd'] == 'dl') and TEXT_DOWNLOAD!='')
+			else
 			{
-				sfpg_image(GALLERY, IMAGE, 'image', TRUE);
-				exit;
-			}
-
-			if (SHOW_FILES and ($_GET['cmd'] == 'file'))
-			{
-				if (preg_match("#^(/|([A-Z]:)?(\\\\|/))#i", GALLERY_ROOT)) // if GALLERY_ROOT is an absolute path
+				$from = strrpos(rtrim(GALLERY, '/'), '/');
+				if ($from===FALSE)
 				{
-					$download_path='./_sfpg_download';
-					if (is_link($download_path))
-					{
-						$prefix = $download_path.'/';
-					}
-					elseif (symlink(rtrim(GALLERY_ROOT, '/'), $download_path))
-					{
-						$prefix = $download_path.'/';
-					}
-					else
-					{
-						echo 'Unable to access file.';
-						exit;
-					}
+					$from = -1;
+				}
+				$zip_name = substr(GALLERY, $from+1, -1).'.zip';
+			}
+			if (file_exists($zip_dir.$zip_name) and file_exists($zip_dir.$zip_name.'.hash') and ($zip_hash === file_get_contents($zip_dir.$zip_name.'.hash')))
+			{
+				header('Location: '.$zip_link.'/'.GALLERY.$zip_name);
+				exit;
+			}
+			else
+			{
+				sfpg_delete($zip_dir.$zip_name);
+				sfpg_delete($zip_dir.$zip_name.'.hash');
+			}
+			sfpg_mkdir($zip_dir);
+			file_put_contents($zip_dir.$zip_name.'.hash', $zip_hash);
+
+			$zip = new ZipArchive();
+			$zip->open($zip_dir.$zip_name, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+			$zip_index = 0;
+			foreach($files_for_zip as $file)
+			{
+				$zip->addFile(realpath(GALLERY_ROOT.$file), substr($file, strlen(GALLERY)));
+				if (ZIP_COMPRESSION)
+				{
+			    	$zip->setCompressionIndex($zip_index, ZipArchive::CM_DEFLATE);
 				}
 				else
 				{
-					$prefix = GALLERY_ROOT;
+					$zip->setCompressionIndex($zip_index, ZipArchive::CM_STORE);
 				}
-				header('Location: '.$prefix.GALLERY.IMAGE);
+				$zip_index++;
+			}
+			if ($zip->close())
+			{
+				header('Location: '.$zip_link.'/'.GALLERY.$zip_name);
 				exit;
 			}
+			echo 'Unable to create zip file.';
+			exit;
+		}
+		else
+		{
+			echo TEXT_ZIP_NOTHING;
+			exit;
+		}
+	}
+
+	if (isset($_GET['cmd']) and $get_set)
+	{
+		if ($_GET['cmd'] == 'thumb')
+		{
+			sfpg_image(GALLERY, IMAGE, 'thumb');
+			exit;
+		}
+
+		if ($_GET['cmd'] == 'image')
+		{
+			sfpg_image(GALLERY, IMAGE, 'image');
+			exit;
+		}
+
+		if (($_GET['cmd'] == 'dl') and TEXT_DOWNLOAD!='')
+		{
+			sfpg_image(GALLERY, IMAGE, 'image', TRUE);
+			exit;
+		}
+
+		if (SHOW_FILES and ($_GET['cmd'] == 'file'))
+		{
+			if (preg_match("#^(/|([A-Z]:)?(\\\\|/))#i", GALLERY_ROOT)) // if GALLERY_ROOT is an absolute path
+			{
+				$download_path='./_sfpg_download';
+				if (is_link($download_path))
+				{
+					$prefix = $download_path.'/';
+				}
+				elseif (symlink(rtrim(GALLERY_ROOT, '/'), $download_path))
+				{
+					$prefix = $download_path.'/';
+				}
+				else
+				{
+					echo 'Unable to access file.';
+					exit;
+				}
+			}
+			else
+			{
+				$prefix = GALLERY_ROOT;
+			}
+			header('Location: '.$prefix.GALLERY.IMAGE);
+			exit;
 		}
 	}
 
@@ -3140,7 +3378,7 @@
 						$path = sfpg_url_decode($_POST['path']);
 						if ($path)
 						{
-							unlink(GALLERY_ROOT.$path[0].DIR_THUMB_FILE);
+							sfpg_delete(GALLERY_ROOT.$path[0].DIR_THUMB_FILE);
 							sfpg_set_dir_info($path[0]);
 						}
 					}
@@ -3234,9 +3472,9 @@
 			}
 			if ($_POST['func']==='desc')
 			{
-				$action=$_POST['action'];
-				$text=$_POST['text'];
-				$ele=$_POST['ele'];
+				$action=@$_POST['action'];
+				$text=@$_POST['text'];
+				$ele=@$_POST['ele'];
 				if (($action==='del') or ($text===''))
 				{
 					$eleWd = sfpg_url_decode($ele);
@@ -3307,7 +3545,7 @@
 				}
 			}
 		}
-		if ($_GET['cmd'] == 'dirs')
+		if (isset($_GET['cmd']) and ($_GET['cmd'] == 'dirs'))
 		{
 			sfpg_browse_dirs();
 			exit;
@@ -3717,12 +3955,17 @@
 		overflow:auto;
 		-webkit-overflow-scrolling:touch;
 	}
+	#password
+	{
+		display:none;
+		visibility:hidden;
+	}
 	'.
 	'</style>';
 	sfpg_javascript();
 	echo '</head>';
 	
-	if (PAYPAL_ENABLED and $get_set and ($_GET['cmd'] == 'buy') and IMAGE!='')
+	if (PAYPAL_ENABLED and $get_set and (@$_GET['cmd'] == 'buy') and IMAGE!='')
 	{
 		$sell=@file(GALLERY_ROOT.GALLERY.IMAGE.PAYPAL_EXTENSION,FILE_IGNORE_NEW_LINES);
 		if (($sell==false) or ($sell[1]!=1))

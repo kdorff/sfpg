@@ -1,11 +1,11 @@
 
 
-		Single File PHP Gallery 4.9.0 (SFPG)
+		Single File PHP Gallery 4.11.0 (SFPG)
 
-		See END USER LICENSE AGREEMENT for commercial use
+		See END USER LICENSE AGREEMENT for commercial
 
-		Released: 26-feb-2022
-		http://sye.dk/sfpg/
+		Released: 6-october-2022
+		https://sye.dk/sfpg/
 		By Kenny Svalgaard
 
 
@@ -35,7 +35,7 @@ Single File PHP Gallery does not require any configuration or programming skills
 
 You can see how it looks in the demo here:
 
-  http://sye.dk/sfpg/
+  https://sye.dk/sfpg/
 
 
 ____________________________________________________________
@@ -51,7 +51,7 @@ Making a donation:
 Domain name must be clearly stated in the donation, otherwise the donation will not grant use of the script under donating conditions. Donations are not refundable.
 
 Use the PayPal donate button on the page for donations:
-  http://sye.dk/sfpg/
+  https://sye.dk/sfpg/
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -66,9 +66,10 @@ FEATURES
  * Uses no Database
  * Automatically creates thumbnails
  * GPS link and map for images with GPS information
+ * Zip option for download of gallery images and files
  * Slideshow option
  * PayPal integration for simple selling
- * Displays EXIF and IPTC information
+ * Displays EXIF, IPTC and PNG text chunks information
  * Option to password protect gallery
  * Administrator options to upload, rename, move, delete and create directories, images and files
  * Administrator options to manage description and selling information
@@ -92,8 +93,8 @@ IMPORTANT INFORMATION
    For this to work, PHP needs permission to create, modify and delete in the GALLERY_ROOT.
 
  * The gallery contains an automatic clean-up function that deletes unused files in DATA_ROOT.
-   The gallery will clean up files in the DATA_ROOT that are no longer used by the gallery. So make sure not to use the DATA_ROOT for storing anything.
-   The clean up routine is activated when viewing a directory where the number of subdirectories, images and/or files have changed since last access to the directory.
+   The gallery will delete files in the DATA_ROOT that are no longer used by the gallery. So make sure not to use the DATA_ROOT for storing anything.
+   The clean-up routine is activated when viewing a directory where the number of subdirectories, images and/or files have changed since last access to the directory.
    For this to work, PHP needs permission to delete in the DATA_ROOT.
 
  * The gallery contains options to delete images older than a set number of days, and empty directories. If using these options, make sure to have a backup of the GALLERY_ROOT.
@@ -103,6 +104,17 @@ IMPORTANT INFORMATION
 ____________________________________________________________
 NEWS IN THIS VERSION
 
+ * Added option to extract and show PNG text chunks information.
+ * Fixed handling of images with corrupt EXIF date information.
+
+News from previous version:
+ * Added zip option to allow download of galleries as zip files. Zip option is disabled by default. See zip section for configuration options.
+ * Added detection of inaccessible GALLERY_ROOT. Script will show an error message if GALLERY_ROOT is inaccessible.
+ * Added TEXT_DAYS option, to allow setting localized representation of days.
+ * Added TEXT_MONTHS option, to allow setting localized representation of months.
+ * Other minor fixes, changes and enhancements.
+ 
+News from the version before previous version:
  * Enabled script to be fully configurable from a wrapper file. See new section "USING A WRAPPER FILE".
  * Moved SECURITY_PHRASE to a separate file in the DATA_ROOT. See the "SECURITY_PHRASE" description under the DATA_ROOT option.
  * Added functionality to allow download of files stored outside web root (when GALLERY_ROOT is set to an absolute path).
@@ -118,11 +130,7 @@ NEWS IN THIS VERSION
  * Minimum PHP version 7.0 is required.
  * Other minor fixes, changes and enhancements.
 
-News in version 4.8.1:
- * Fixed issue where non-image files in the gallery could make gallery not work.
- * Fixed issue where description from a sub directrory could be shown in parent directory, when parent directory have no description.
-
-For changes in previous versions see here: http://sye.dk/sfpg/
+For changes in previous versions see here: https://sye.dk/sfpg/
 
 
 ____________________________________________________________
@@ -130,7 +138,7 @@ REQUIREMENTS
 
 For this gallery to function you will need the following:
  * A web server capable of running PHP 7.0, or higher, scripts.
- * The PHP GD library (php_gd) installed. See here for information: http://php.net/gd
+ * The PHP GD library (php_gd) installed. See here for information: https://www.php.net/manual/en/book.image.php
  * PHP write access to server.
  * PHP memory limit large enough to contain both full size image and thumbnail. See the FAQ section for further information on this.
 
@@ -182,7 +190,7 @@ In the below example wrapper script the sfpg index.php have been renamed to sfpg
 ____________________________________________________________
 TIPS / FAQ
 
- * If some or all thumbnails is missing or show up as a red X, the reason could be that the full images is too big for the php-engine to load them into memory. You will then have to do one of the following:
+ * If some or all thumbnails are missing or show up as a red X, the reason could be that the full images are too big for the php-engine to load them into memory. You will then have to do one of the following:
      1. Make the full images smaller.
      2. Increase the memory_limit in php.ini. (If the memory_limit is 8MB, it gives a maximum image size on about 1600*1600 pixels).
  * If no thumbnails or images show, it could be that the script does not have the php tag "<?php" as the very first. This tag must come before any other output. A blank line above or even a space before the tag will render the script useless. This can also happen if the auto_prepend_file option in php is used.
@@ -206,11 +214,11 @@ KNOWN ISSUES
 ____________________________________________________________
 SUPPORT / REQUESTS / HELP / CONTACT
 
-If you need help getting Single File PHP Gallery to work, then please start by running the SFPG TEST script file on the server. The SFPG TEST script is a normal PHP page, and you can download it from the Single File PHP Gallery page. The script tests to see if the requirements for the script to run are met, and generates an output explaining what could be the issue. If the output from the script does not provide enough information for you to make the script work, then please use the contact form on the Single File PHP Gallery page. Describe the issue you are having and also copy/paste the information from the SFPG TEST script along with the description.
+If you need help getting Single File PHP Gallery to work, then please start by running the SFPG TEST script file on the server. The SFPG TEST script is a normal PHP file, you can download it from the Single File PHP Gallery page. The script tests to see if the requirements for the script to run are met, and generates an output explaining what could be the issue. If the output from the script does not provide enough information for you to make the script work, then please use the contact form on the Single File PHP Gallery page. Describe the issue you are having and also copy/paste the information from the SFPG TEST script along with the description.
 
 If you have comments, questions, requests, greetings etc. regarding Single File PHP Gallery, please use the contact form on my page.
 
-  http://sye.dk/
+  https://sye.dk/
 
 
 ____________________________________________________________
@@ -224,12 +232,12 @@ Refer to the descriptions below for configuration.
 ____________________________________________________________
 option('GALLERY_ROOT', './');
 
-Set the path of the gallery root, where the images and sub directories containing images is placed.
+Set the path of the gallery root, where the images and sub directories containing images are placed.
 The default value is './' which is the directory where the script is placed.
 
 If GALLERY_ROOT is set to an absolute path and SHOW_FILES is set to TRUE, then a symbolic link called "_sfpg_download" will be created in script directory. This link gives web access to the GALLERY_ROOT, enabling download of files.
 
-GALLERY_ROOT should always end with a slash like the examples below.
+IMPORTANT: GALLERY_ROOT should always end with a slash like the examples below.
 
 Example 1: './images/'
 Example 2: $_SERVER['DOCUMENT_ROOT'].'/gallery/images/'
@@ -243,7 +251,7 @@ Set the path to where thumbnails and other data should be saved. PHP needs to ha
 
 By default DATA_ROOT points to a directory called _sfpg_data in the same directory where the script is placed. If the directory do not exists, the script will try to create it. The _sfpg_data directory is by default excluded from the gallery, using the DIR_EXCLUDE option.
 
-DATA_ROOT should always end with a slash like these examples:
+IMPORTANT: DATA_ROOT should always end with a slash like these examples:
 
 Example 1: './thumbs/'
 Example 2: $_SERVER['DOCUMENT_ROOT'].'/gallery/thumbs/'
@@ -264,7 +272,7 @@ To create the sp.php file manually, do this:
 2. Create a file called "sp.php" in the DATA_ROOT directory.
 3. Edit the sp.php file and copy this one line of code to the file:
 
-<?php option('SECURITY_PHRASE', ''); ?>
+<?php if(function_exists('option')) option('SECURITY_PHRASE', ''); ?>
 
 4. Insert a random string of chars between the last two ''.
 5. Save the file.
@@ -293,7 +301,9 @@ option('ADMIN', FALSE);
 ** WARNING ** SETTING THIS OPTION TO ANYTHING OTHER THAN FALSE WILL ALLOW USERS TO UPLOAD, DELETE, RENAME, MOVE and CREATE DIRECTORIES, IMAGES AND FILES IN THE GALLERY_ROOT **
 
 Set to FALSE to disable the administrator functions.
-Set to TRUE to allow users to access the administrator menu, where the following options are available:
+Set to TRUE to enable users to access the administrator menu.
+
+When enable the following admin options are available:
  1. Upload of files to the gallery.
  2. Rename, move, and delete images and files.
  3. Rename, move, delete and create directories.
@@ -301,27 +311,38 @@ Set to TRUE to allow users to access the administrator menu, where the following
  5. Create, edit and remove PayPal selling information for images.
  6. Select custom image to be used as thumbnail for directories.
 
-IMPORTANT: Do not put the gallery unprotected on a public server with this option enabled.
+IMPORTANT: Do not put the gallery unprotected on a public server with this option enabled. (The PASSWORD option can be used to protect the gallery.)
 IMPORTANT: Make sure that only administrators have access to the gallery, when this option is enabled (set to TRUE).
-
-The PASSWORD option can be used to protect the gallery, when this option is enabled.
-
-If you want to have a public gallery and also want to allow administrators to login and use the admin functions, do like this:
- 1. Configure the public gallery as you want. Leave the ADMIN option to FALSE, and the PASSWORD option to '', which will make it accessible for public use.
- 2. Make a copy of the public index.php file, for the administrators to use. Name it as you like.
- 3. Set a good, secure and unique password in the PASSWORD option, in the administrator copy of the gallery file.
- 4. Set ADMIN to TRUE, in the administrator copy of the gallery file.
- 5. Now only link to the public gallery on your page. But use the administrator copy to login and administer the gallery as needed.
-
-When this option is set to TRUE, the "Admin" button will be shown in the bottom menu. Click it to enter administrator menu.
-
-While in the administrator menu: Clicking an element (directory, image or file), will select the element (will be highlighted). Clicking a selected elements will deselected the element again.
 
 INFO: Using these options require PHP to have permission to create, edit and delete in the GALLERY_ROOT.
 INFO: Uploading or Moving files to a directory that already contains files with the same name, will overwrite the files without confirmation.
 INFO: Deleting a directory will also delete all files and sub directories inside the directory - Keep in mind that there could be files that are not shown in the gallery.
 INFO: Deleting, moving or renaming a file will also, if they exists, delete, move or rename the thumbnail (defined by FILE_THUMB_EXT) and the description (defined by DESC_EXT) for the file.
 INFO: Deleting, moving or renaming an image will also, if they exists, delete, move or rename the description file (defined by DESC_EXT) and the selling file (defined by PAYPAL_EXTENSION) for the image.
+
+
+If you want to have a public gallery and also want to allow administrators to login and use the admin functions, the easiest would be to use a wrapper script for the admins. To make an admin wrapper script do this:
+
+ 1. Configure the public gallery as you want. Leave the ADMIN option to FALSE, and the PASSWORD option to '', which will make it accessible for public use.
+ 2. Create a php file, name it as you like and copy the below admin wrapper script to the file.
+
+------ ADMIN WRAPPER SCRIPT STARTS BELOW THIS LINE ------
+<?php
+	define('PASSWORD', 'Your Password Here');
+	define('ADMIN', TRUE);  // WARNING - See description in readme.txt before setting to TRUE
+	include 'index.php';
+?>
+------ ADMIN WRAPPER SCRIPT ENDS ABOVE THIS LINE ------
+ 
+ 3. Set a good, secure and unique password in the PASSWORD option in the admin wrapper script.
+ 4. Place the admin wrapper php file in the same directory as the gallery script.
+ 5. Now only link to the public gallery on your page. And use the admin wrapper script to login and administer the gallery.
+
+
+USING THE ADMIN FUNCTIONS:
+
+When this option is set to TRUE, the "Admin" button will be shown in the bottom menu. Click it to enter administrator menu.
+While in the administrator menu: Clicking an element (directory, image or file), will select the element (will be highlighted). Clicking a selected elements will deselected the element again.
 
 To upload files or images to the current directory:
  1. Click the "Admin" button.
@@ -358,7 +379,7 @@ To create a new directory in the current directory:
 
 To set a thumbnail for the current directory:
  1. Click the "Admin" button.
- 2. Click the image that should be used as thumbnail for the directory. The chosen image must be of same type as DIR_THUMB_FILE. (A copy of the chosen image will be named as DIR_THUMB_FILE and will used as thumbnail. The chosen image will stay in the gallery).
+ 2. Click the image that should be used as thumbnail for the directory. The chosen image must be of same type as DIR_THUMB_FILE. (A copy of the chosen image will be named as DIR_THUMB_FILE and will used as thumbnail. The chosen image will stay untouched in the gallery).
  3. Click "Dir Thumb".
  4. Confirm.
 
@@ -464,13 +485,13 @@ option('DIR_SORT_BY_TIME', FALSE);
 Set to TRUE to sort directories by modified time.
 Set to FALSE to sort directories by name.
 
-The modified time of a directory is normally updated when changes is made to the contents of the given directory. Even deleting a file or image can make the directory "new". (This might differ from platform to platform).
+The modified time of a directory is normally updated when changes are made to the contents of the given directory. Even deleting a file or image can make the directory "new". (This might differ from platform to platform).
 
 See also DIR_SORT_REVERSE and SORT_ALL_NATURAL for other sorting options for dirs.
 
 
 ____________________________________________________________
-option('DIR_EXCLUDE', ['_sfpg_data', '_sfpg_icons']);
+option('DIR_EXCLUDE', ['_sfpg_data', '_sfpg_zip', '_sfpg_icons']);
 
 Set an array of directory names that should not be shown in the gallery.
 
@@ -487,7 +508,7 @@ ____________________________________________________________
 option('DIR_EXCLUDE_REGEX', '');
 
 Use regular expressions to exclude directories from gallery view.
-See here for syntax: http://php.net/manual/en/pcre.pattern.php
+See here for syntax: https://php.net/manual/en/pcre.pattern.php
 
 
 ____________________________________________________________
@@ -547,7 +568,7 @@ ____________________________________________________________
 option('IMAGE_EXCLUDE_REGEX', '');
 
 Use regular expressions to exclude images from gallery view.
-See here for syntax: http://php.net/manual/en/pcre.pattern.php
+See here for syntax: https://php.net/manual/en/pcre.pattern.php
 
 
 ____________________________________________________________
@@ -622,7 +643,7 @@ See also FILE_SORT_REVERSE and SORT_ALL_NATURAL for other sorting options for fi
 
 
 ____________________________________________________________
-option('FILE_EXCLUDE', []);
+option('FILE_EXCLUDE', ['_sfpg_zip']);
 
 Set an array of file names that should not be shown in the gallery.
 
@@ -660,7 +681,7 @@ ____________________________________________________________
 option('FILE_EXCLUDE_REGEX', '');
 
 Use regular expressions to exclude files from gallery view.
-See here for syntax: http://php.net/manual/en/pcre.pattern.php
+See here for syntax: https://php.net/manual/en/pcre.pattern.php
 
 Example for excluding all files starting with a dot: option('FILE_EXCLUDE_REGEX', '/^[.]/');
 
@@ -685,7 +706,7 @@ Set an URL to show a button that will function as a link to the set URL. This ca
 Set to '' to not show the button.
 
 Example 1: Set to '/' to have button take you to the root of your web.
-Example 2: Set to 'http://www.yoursite.com/page.html'.
+Example 2: Set to 'https://www.yoursite.com/page.html'.
 
 See TEXT_LINK_BACK for the text on the button.
 
@@ -745,7 +766,7 @@ ____________________________________________________________
 option('HTML_DESCRIPTIONS', FALSE);
 
 WARNING: Setting this option to anything but FALSE could allow malicious scripts imbedded in images and from description files to be executed in end user browser.
-IMPORTANT: If files from untrusted sources is in the gallery, this option should be set to FALSE.
+IMPORTANT: If files from untrusted sources are in the gallery, this option should be set to FALSE.
 
 This setting have effect on contents from the following files: DIR_NAME_FILE, DIR_DESC_FILE, DIR_BANNER_FILE and alle description files for images and files defined by DESC_EXT.
 
@@ -782,7 +803,7 @@ option('SORT_ALL_NATURAL', TRUE);
 Set to TRUE to have directories, images and files sorted in a case insensitive "natural order".
 Set to FALSE to have elements sorted normally.
 
-See here for information: http://php.net/natcasesort
+See here for information: https://php.net/natcasesort
 
 
 ____________________________________________________________
@@ -821,6 +842,21 @@ INFO: The extraction of information is done when the thumbnail is generated. So 
 
 
 ____________________________________________________________
+option('PNG_TEXT_CHUNKS', TRUE);
+
+Option to extract and show PNG text chunks in the gallery information panel. Only "tEXt" is extracted. "iTXt" and "zTXt" is not extracted.
+
+Set to TRUE to extract and show all PNG text chunks.
+Set to an array of selected PNG text chunks to extract and show.
+Set to FALSE to not extract or show PNG text chunks.
+
+INFO 1: When setting to an array, all keywords should be entered in low case.
+INFO 2: The extraction of information is done when the thumbnail is generated. So changing what is extracted requires you to delete the contents of the DATA_ROOT, to have new thumbnails generated.
+
+Example array configuration: option('PNG_TEXT_CHUNKS', ['title', 'author', 'description']);
+
+
+____________________________________________________________
 option('SHOW_INFO_BY_DEFAULT', FALSE);
 
 Set to TRUE to have the gallery open the Information panel by default, the user can still click the Information button to hide the panel.
@@ -832,6 +868,121 @@ option('ROUND_CORNERS', 3);
 
 Set the number of pixels that the corners should be rounded with. A higher number will make the corners more round.
 Set to FALSE to not have rounded corners.
+
+
+____________________________________________________________
+option('ZIP_ENABLE', FALSE);
+
+Set to TRUE to enable generation and download of zip files.
+
+When enabled a zip button will be shown in the information panel.
+By default only images from the current directory will be included in the zip file. See other zip options below.
+
+Generated zip files are saved in DATA_ROOT/zip/ for when the same zip file is requested again.
+To determine if a new zip file should be created, the gallery only looks at the list of elements in the zip file, not the contents of the files.
+So editing a file will not generate a new zip file. But changing the name of a file will. Adding, deleting or moving files in the gallery will also generate a new zip file.
+
+A symbolic link "_sfpg_zip" will be created in the GALLERY_ROOT giving access to the zip files.
+The "_sfpg_zip" is excluded in both DIR_EXCLUDE and FILE_EXCLUDE, as on Windows a symbolic link is seen as a directory and on Linux as a file.
+
+Cached zip files for a directory will be deleted if the source directory is deleted, moved or renamed. See the IMPORTANT INFORMATION section about the clean-up function.
+
+
+____________________________________________________________
+option('ZIP_FILES', FALSE);
+
+Set to TRUE to include files in the zip files.
+Set to FALSE to not include files in the zip files.
+
+
+____________________________________________________________
+option('ZIP_FILE_THUMBS', FALSE);
+
+Set to TRUE to include thumbnails for files in zip files.
+Set to FALSE to not include thumbnails for files in zip files.
+
+
+____________________________________________________________
+option('ZIP_SUB_GALLERIES', FALSE);
+
+WARNING: Setting this to TRUE will allow users to zip the entire gallery in one click. Depending of the amount of contents in the gallery this could use a lot of CPU and disk space.
+
+Set to TRUE to include sub galleries (sub directories) in zip files.
+Set to FALSE to not include sub galleries (sub directories) in zip files.
+
+
+____________________________________________________________
+option('ZIP_DESCRIPTIONS', FALSE);
+
+Set to TRUE to include description files in zip files.
+Set to FALSE to not include description files in zip files.
+
+Description files include the following:
+ * Description files for images, files and directories.
+ * Banner files defined by DIR_BANNER_FILE.
+ * Directory name files defined by DIR_NAME_FILE.
+ * PayPal sell files defined by PAYPAL_EXTENSION.
+
+
+____________________________________________________________
+option('ZIP_COMPRESSION', FALSE);
+
+Set to TRUE to compress zip files. It will take longer time and use more CPU to generate the zip files, but the zip files will be smaller.
+Set to FALSE to store (no compression). It will generate zip files faster and uses less CPU, but will generates larger zip files.
+
+INFO: JPG/JPEG images do not compress very much. So if used mainly for these file types, then it is best to set this option to FALSE.
+
+
+____________________________________________________________
+option('ZIP_CACHE_DAYS', 180);
+
+Set number of days to cache zip files.
+Set to FALSE to not delete zip files due to age.
+
+IMPORTANT: Do not set this option below 1 (one), as it could result in zip files being deleted before they are downloaded.
+
+Deletion of zip files older than the set number of days are activated when new zip files are requested.
+
+
+____________________________________________________________
+option('TEXT_ZIP_ROOT_NAME', 'Single File PHP Gallery');
+
+Set the name of the zip file if downloaded at root of gallery.
+
+All other zip files will be named like the directory from where they are downloaded.
+
+
+____________________________________________________________
+option('TEXT_ZIP_NOTHING', 'Nothing to zip.');
+
+Set the text that is shown if the zip button is pressed and no images or files are found.
+
+If no images or files are found matching zip configuration this text is shown.
+
+
+____________________________________________________________
+option('TEXT_ZIP_DL', 'Download all images in this directory as a zip file:');
+
+Set the text that is shown above the zip button in the information panel.
+
+If allowing download of only images, set to: 'Download all images in this directory as a zip file:'
+If allowing download of images and files set to: 'Download all images and files in this directory as a zip file:'
+If allowing download of images in subdirectories set to: 'Download all images in this directory and all subdirectories as a zip file:'
+If allowing download of images and files in subdirectories set to: 'Download all images and files in this directory and all subdirectories as a zip file:'
+
+
+____________________________________________________________
+option('TEXT_ZIP_BUTTON', 'Generate zip-file and download');
+
+Set the text on the zip button.
+
+The button is shown in the information panel.
+
+
+____________________________________________________________
+option('TEXT_ZIP_WAIT', 'Zip is being generated. Please wait...');
+
+Set the text that replaces the zip button when clicked.
 
 
 ____________________________________________________________
@@ -1131,7 +1282,7 @@ Set to FALSE to have the gallery leave empty directories as is.
 WARNING: A directory not containing directories, images or files, that is to be shown in the gallery is considered empty. This means that a directory containing banner, description, hidden files or hidden directories, will still be considered empty, and will be deleted if the option is set to TRUE.
 
 Information about what is inside a directory is updated when entering the directory. So if all content have been deleted in a directory, you will have to enter the directory to update the information. First then will the directory be deleted.
-Empty directories is deleted when they are about to be listed as an element in the gallery.
+Empty directories are deleted when they are about to be listed as an element in the gallery.
 
 
 ____________________________________________________________
@@ -1278,6 +1429,20 @@ ____________________________________________________________
 option('HTML_LANGUAGE', 'en-US');
 
 Set the language identifier of the language used in the gallery.
+
+
+____________________________________________________________
+option('TEXT_DAYS', "['Sun','Mon','Tue','Wed','Thu','Fri','Sat']");
+
+Set the representation of the week days. Must start with Sunday and have all seven days.
+Make sure not to change the syntax of the option. Change only the text.
+
+
+____________________________________________________________
+option('TEXT_MONTHS', "['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']");
+
+Set the representation of the months. Must start with January and have all 12 months.
+Make sure not to change the syntax of the option. Change only the text.
 
 
 ____________________________________________________________
@@ -1463,7 +1628,7 @@ Text for the information to be shown instead of a thumbnail if there is no thumb
 ____________________________________________________________
 option('TEXT_IMAGE_LOADING', 'Image Loading ');
 
-Text for the information to show when images is loading.
+Text for the information to show when images are loading.
 
 
 ____________________________________________________________
@@ -1691,7 +1856,7 @@ Set to '' to not show the map link.
 
 
 ____________________________________________________________
-option('EXIF_MAP_LINK', 'http://maps.google.com/maps?q=[lat],[long]');
+option('EXIF_MAP_LINK', 'https://maps.google.com/maps?q=[lat],[long]');
 
 Set the link to map function like Google maps. When clicked link will be launched in a new page.
 Latitude in decimal will be filled in where this string is: [lat]
@@ -1708,7 +1873,7 @@ Set to '' to disable the embedded map in the gallery.
 
 
 ____________________________________________________________
-option('EXIF_MAP_EMBED_LINK', 'http://maps.google.com/maps?q=[lat],[long]&output=embed');
+option('EXIF_MAP_EMBED_LINK', 'https://maps.google.com/maps?q=[lat],[long]&output=embed');
 
 Set the link to map function like Google maps. The map is imbedded in the information panel in the gallery.
 
@@ -1716,6 +1881,12 @@ Latitude in decimal will be filled in where this string is: [lat]
 Longitude in decimal will be filled in where this string is: [long]
 
 Set to '' to disable the embedded map in the gallery.
+
+
+____________________________________________________________
+option('TEXT_PNG_CHUNKS', 'PNG text chunks');
+
+Text for the title of the PNG text chunks box in the information panel.
 
 
 ____________________________________________________________
@@ -1747,13 +1918,13 @@ option('IPTC', [
 ]);
 
 Set which IPTC data to extract and what to call the caption for it.
-If new lines is added to the list, the content of the DATA_ROOT should be deleted to allow extraction of new data.
+If new lines are added to the list, the content of the DATA_ROOT should be deleted to allow extraction of new data.
 
 INFO: The , at the end of the last line is not an error. It is allowed and makes moving the lines easier.
 
 
 ____________________________________________________________
-Set the colors to be used. If the color variable names is not enough to indicate where it goes, then just change it to red (#ff0000) or blue (#0000ff) and refresh the page, you should then be able to spot it.
+Set the colors to be used. If the color variable names are not enough to indicate where it goes, then just change it to red (#ff0000) or blue (#0000ff) and refresh the page, you should then be able to spot it.
 
 option('COLOR_BODY_BACK', '#000000');
 option('COLOR_BODY_TEXT', '#aaaaaa');
