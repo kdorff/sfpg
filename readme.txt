@@ -1,10 +1,10 @@
 
 
-		Single File PHP Gallery 4.5.7 (SFPG)
+		Single File PHP Gallery 4.6.1 (SFPG)
 
 		See END USER LICENSE AGREEMENT for commercial use
 
-		Released: 20-May-2015
+		Released: 08-Jan-2016
 		http://sye.dk/sfpg/
 		By Kenny Svalgaard
 
@@ -67,7 +67,7 @@ FEATURES
  * PayPal integration with inventory counter for simple selling
  * Displays EXIF and IPTC information
  * Option to password protect gallery
- * Option to delete directories, images and files
+ * Administrator options to rename, move, delete and create directories, images and files.
  * Rotates images using EXIF information
  * 3D MPO red/cyan anaglyph and stereo image generation
  * Keyboard navigation
@@ -83,7 +83,7 @@ IMPORTANT INFORMATION
 
 * Make sure NOT to place any content from untrusted sources in the gallery. Code or scripts embedded in files could be sent to the end users, and could be executed.
 
-* The gallery contains an automatic clean-up function to have the gallery delete unused files in DATA_ROOT.
+* The gallery contains an automatic clean-up function that deletes unused files in DATA_ROOT.
   The gallery will clean up files in the DATA_ROOT that are no longer used by the gallery. So make sure not to use the DATA_ROOT for storing anything.
   The clean up routine is activated when viewing a directory where the number of subdirectories, images and/or files have changed since last access to the directory.
   For this to work, PHP needs permission to delete in the DATA_ROOT.
@@ -91,33 +91,27 @@ IMPORTANT INFORMATION
 * The gallery contains an option to delete images older than a set number of days. If using this option, make sure to have a backup of all your images in the GALLERY_ROOT.
   For this to work, PHP needs permission to delete in the GALLERY_ROOT.
 
-* The gallery contains an option to allow users to delete directories, images and files from the gallery.
+* The gallery contains an option to allow users to manage directories, images and files from the gallery.
   If using this option, make sure that only administrators have access to the gallery.
   Do not put the gallery unprotected on a public web server with this setting enabled. See the ADMIN option for details.
-  For this to work, PHP needs permission to delete in the GALLERY_ROOT.
+  For this to work, PHP needs permission to create, modify and delete in the GALLERY_ROOT.
+
 
 ____________________________________________________________
 NEWS IN THIS VERSION
 
-* Added touch device detection to work better on iOS (Making javascript onMouseOver events also act as onClick events)
-* Fixed/Added extraction of missing IPTC Creation Date.
-* Added check to hide empty fields in EXIF and IPTC information boxes. Only entries containing data will be shown.
-* Added the NL_TO_BR that was removed in previous version. It is now called DESC_NL_TO_BR.
-* Added meta viewport definition to better function with mobile devices.
-* Added automatic generation of SECURITY_PHRASE. See SECURITY_PHRASE section for details.
-* Fixed so that thumbnails for directories now also regenerate automatically if the source file time change. (You need to access the folder to trigger the regeneration).
-* Removed the ALLOW_DESC_HTML option. All descriptions are now treated as HTML.
-* Minor fixes and improvements.
+* Added option to have thumbnails cropped to a square.
+* Fiexd: Description for images not showing when IPTC information is disabled.
 
 
 ____________________________________________________________
 REQUIREMENTS
 
 For this gallery to function you will need the following:
- * A web server capable of running PHP 5 scripts
- * The PHP GD library (php_gd) installed. See here for information: http://php.net/gd
- * PHP write access to server
- * PHP memory limit large enough to contain both full size image and preview/thumb (converted to BMP) See the FAQ section for further information on this.
+* A web server capable of running PHP 5 scripts.
+* The PHP GD library (php_gd) installed. See here for information: http://php.net/gd
+* PHP write access to server.
+* PHP memory limit large enough to contain both full size image and preview/thumb (converted to BMP) See the FAQ section for further information on this.
 
 
 ____________________________________________________________
@@ -135,9 +129,7 @@ TIPS / FAQ
  * If some or all thumbnails is missing or show up as a red X, the reason could be that the full images is too big for the php-engine to load them into memory. You will then have to do one of the following:
      1. Make the full images smaller
      2. Increase the memory_limit in php.ini. (If the memory_limit is 8MB, it gives a maximum image size on about 1600*1600)
-
  * If no thumbnails or images show, it could be that the script does not have the php tag "<?php" as the very first. The php tag must come before any other output. A blank line above or even a space before the tag will render the script useless. This can also happen if the auto_prepend_file option in php is used.
-
  * Single File PHP Gallery does not have to be called index.php, you can rename it to whatever you like.
 
 
@@ -154,11 +146,11 @@ If you have comments, questions, requests, greetings etc. regarding Single File 
 ____________________________________________________________
 KNOWN ISSUES
 
- * Vertical scrollbar is missing when viewing a directory containing more thumbnails than window can show at one time. This issue have been seen on Apple iOS(iPad, iPhone..), Android devices and Opera browsers. On most hand held devices you can still scroll using normal one finger, or two finger swipe.
  * If a thumbnail for a given image exists, it will be used. So remember to delete old thumbnails if you make changes to the way thumbnails are created. If, for an example, you change the size of thumbnails, you will need to delete the old ones already saved, in order to have the changes apply, and have new thumbnails created. This is by design, and will not be fixed.
  * First access to a gallery containing many images or directories, will take a long time to load, because the script have to create thumbnails for all the images. If the script timeout, the rest of the folders will be left without thumbnails and information. Then just refresh the page and the script will continue from where it came. The folder where the script stopped might not have a thumbnail. If this is so just click the gallery, and the thumb will be created. This is by design.
  * Images smaller than preview size will still have preview size images created, and will also have the option to load full-size, even though they is the same size.
  * Single File PHP Gallery version 4.x is a stand-alone gallery. It is not designed to be included on existing pages. This is by design.
+ * Editing description for images, files or directories will remove line breaks from the description file. HTML line breaks made with <br> will of cause still be effective when viewing the gallery.
 
 
 ____________________________________________________________
@@ -202,7 +194,7 @@ define('SECURITY_PHRASE', '');
 
 Manually set, or have the gallery generate a random phrase. The SECURITY_PHRASE is used to make the gallery URL's tamper resistant to avoid creative or malicious use.
 
-If the gallery is accessed and this option is not set, then the gallery will insert a random string of chars into the script. This string will also be saved in the DATA_ROOT in a file called "security_phrase.php". If this file exists while the gallery is accessed and the SECURITY_PHRASE option is not set, then the string will be reused. This is to avoid having to delete the entire DATA_ROOT, when upgrading or starting over with a fresh copy of the gallery.
+If the gallery is accessed and this option is not set, then the gallery will insert a random string of chars into the script.
 
 If the script can't edit itself, a text is displayed, explaining that the SECURITY_PHRASE have to be set manually.
 
@@ -228,34 +220,62 @@ IMPORTANT: Remember that the password is stored in the gallery script in clear t
 ____________________________________________________________
 define('ADMIN', FALSE);
 
-** WARNING ** SETTING THIS OPTION TO ANYTHING OTHER THAN FALSE WILL ALLOW USERS TO DELETE DIRECTORIES, IMAGES AND FILES IN THE GALLERY_ROOT **
+** WARNING ** SETTING THIS OPTION TO ANYTHING OTHER THAN FALSE WILL ALLOW USERS TO DELETE, RENAME, MOVE and CREATE DIRECTORIES, IMAGES AND FILES IN THE GALLERY_ROOT **
 
-Set to TRUE to allow users to delete directories, images and files from the GALLERY_ROOT.
-Set to FALSE to remove and disable the delete option.
+Set to FALSE to remove and disable the administrator functions.
+Set to TRUE to allow users to access the administrator menu, where the following options are available:
+ 1. Rename, move, and delete images and files.
+ 2. Rename, move, delete and create directories.
+ 3. Create, edit and remove descriptions for directories, images and files.
+ 4. Create, edit and remove PayPal selling information for images.
 
-Make sure that only administrators have access to the gallery, when this option is enabled (set to TRUE). Do not put the gallery unprotected on a public server with this setting enabled, or you will soon find your gallery empty.
+IMPORTANT: Do not put the gallery unprotected on a public server with this setting enabled.
+IMPORTANT: Make sure that only administrators have access to the gallery, when this option is enabled (set to TRUE).
+
 The PASSWORD option can be used to protect the gallery, when this setting is enabled.
 
-If you want to have a public gallery and also want to allow administrators to login and delete elements from the same gallery, do like this:
+If you want to have a public gallery and also want to allow administrators to login and use the admin functions, do like this:
  1. Configure the public gallery as you want (remember to set the SECURITY_PHRASE to a random string of chars). Leave the ADMIN setting to FALSE, and the PASSWORD setting to '', which will make it accessible for all.
  2. Make a copy of the public gallery, for the administrators to use. Name it as you like. The important thing is that the SECURITY_PHRASE is the same in both copies.
  3. Set a good, secure and unique password in the PASSWORD option, in the administrator copy of the gallery.
  4. Set ADMIN to TRUE, in the administrator copy of the gallery.
- 5. Now only link to the public gallery on your page. But use the administrator copy to login and delete elements as needed.
+ 5. Now only link to the public gallery on your page. But use the administrator copy to login and administer as needed.
 
-When this option is set to TRUE, two buttons will be shown in the bottom menu: "Select" and "Delete Selected".
+When this option is set to TRUE, the "Admin" button will be shown in the bottom menu. Click it to enter administrator menu.
+
+Clicking an element (directory, image or file), when in the administrator menu, will select the element (will be highlighted). Clicking a selected elements will deselected the element again.
+
+INFO: Deleting a directory will also delete all files inside the directory - Keep in mind that there could be files that are not shown in the gallery.
+INFO: Deleting, moving or renaming a file will also, if they exists, delete, move or rename the thumbnail (defined by FILE_THUMB_EXT) and the description (defined by DESC_EXT) for the file.
+INFO: Deleting, moving or renaming an image will also, if they exists, delete, move or rename the description file (defined by DESC_EXT) and the selling file (defined by PAYPAL_EXTENSION) for the image.
 
 To delete elements from the gallery:
- 1. Click the "Select" button (Will be highlighted when active).
- 2. Click the elements that should be deleted (Will be highlighted when selected). Clicking a selected elements will deselected the element again.
- 3. Click "Delete Selected" (All selected directories, images and files will be deleted).
+ 1. Click the "Admin" button.
+ 2. Click the elements that should be deleted.
+ 3. Click "Delete".
+ 4. Confirm.
 
-IMPORTANT: There are no "Are you sure?" dialogue when deleting, also the deleted elements can not be restored.
+To move elements in the gallery:
+ 1. Click the "Admin" button.
+ 2. Click the elements that should be moved.
+ 3. Click "Move" (a tree view of the directories in the GALLERY_ROOT will be shown).
+ 4. Browse to the directory you want to move the selected elements.
+ 5. Confirm.
 
-INFO: Using this option require PHP to have permission to delete in the GALLERY_ROOT.
-INFO: Deleting a directory will also delete all files inside the directory - Keep in mind that there could be files that are not shown in the gallery.
-INFO: Deleting a file will also, if they exists, delete thumb (defined by FILE_THUMB_EXT) and description (defined by DESC_EXT) for the file.
-INFO: Deleting an image will also, if they exists, delete description file (defined by DESC_EXT) and selling file (defined by PAYPAL_EXTENSION) for the image.
+To rename elements from the gallery:
+ 1. Click the "Admin" button.
+ 2. Click the element (only one) that should be renamed.
+ 3. Click "Rename".
+ 4. Enter new name.
+ 5. Confirm.
+
+To create a new directory:
+ 1. Click the "Admin" button.
+ 2. Click "Create Directory".
+ 3. Enter new directory name.
+ 4. Confirm.
+
+INFO: Using these options require PHP to have permission to create, edit and delete in the GALLERY_ROOT.
 
 
 ____________________________________________________________
@@ -271,7 +291,7 @@ TIP 2: See SORT_DIVIDER for an easy way of sorting directories, images and files
 
 
 ____________________________________________________________
-define('DIR_THUMB_FILE', '_dir.jpg');
+define('DIR_THUMB_FILE', '_image.jpg');
 
 Set the name of the image that can be placed in every directory in the gallery.
 If an image with the given name is found, it will be used as thumbnail for that directory. The image will not be displayed inside the directory.
@@ -681,6 +701,15 @@ If thumbnails have been saved on server you will have to delete them in order to
 
 
 ____________________________________________________________
+define('THUMB_SQUARE', FALSE);
+
+Set to TRUE to have thumbnails cropped to a square.
+Set to FALSE to have thumbnails maintain aspect ratio.
+
+When setting this option to TRUE, then THUMB_MAX_WIDTH and THUMB_MAX_HEIGHT should be set to the same number.
+
+
+____________________________________________________________
 define('THUMB_ENLARGE', FALSE);
 
 Set to TRUE to have thumbnails for images that is smaller than THUMB_MAX_WIDTH and THUMB_MAX_HEIGHT enlarged.
@@ -979,6 +1008,10 @@ Using the PayPal option requires write access to the GALLERY_ROOT, for updating 
 
 Using the PayPal option:
 If you have an item you want to sell, you first need to have an image of it, as only images can have a price. Files and folders in the gallery can't be sold.
+
+To enable selling first set PAYPAL_ENABLED to TRUE, then either use the administrator option to set the price, or do it manually.
+
+To manually set an image up for sale:
 Lets say you have an image called 'My first painting.jpg'. You then have to make a sell file, which is a text file with the same name as the image with the PAYPAL_EXTENSION added.
 By default the PAYPAL_EXTENSION is '.sell'. Making it look like this:
 
@@ -1205,9 +1238,9 @@ Text for the file name label.
 
 
 ____________________________________________________________
-define('TEXT_DIRS', 'Sub galleries');
+define('TEXT_DIRS', 'Directories');
 
-Text for the sub galleries label.
+Text for the directories/sub galleries label.
 
 
 ____________________________________________________________
@@ -1325,15 +1358,69 @@ Text for the logout button, when using the PASSWORD option.
 
 
 ____________________________________________________________
-define('TEXT_SELECT', 'Select');
+define('TEXT_ADMIN', 'Admin');
 
 Text for the Select button, used when the ADMIN option have been set to TRUE.
 
 
 ____________________________________________________________
-define('TEXT_SELECT_DELETE', 'Delete Selected');
+define('TEXT_OK', 'OK');
+
+Text for the OK button, used when the ADMIN option have been set to TRUE.
+
+
+____________________________________________________________
+define('TEXT_CANCEL', 'Cancel');
+
+Text for the Cancel button, used when the ADMIN option have been set to TRUE.
+
+
+____________________________________________________________
+define('TEXT_DELETE', 'Delete');
 
 Text for the Delete button, used when the ADMIN option have been set to TRUE.
+
+
+____________________________________________________________
+define('TEXT_RENAME', 'Rename');
+
+Text for the Rename button, used when the ADMIN option have been set to TRUE.
+
+
+____________________________________________________________
+define('TEXT_MOVE', 'Move');
+
+Text for the Move button, used when the ADMIN option have been set to TRUE.
+
+
+____________________________________________________________
+define('TEXT_MOVE_TO', 'Move to');
+
+Text for the Move to label, used when the ADMIN option have been set to TRUE.
+
+
+____________________________________________________________
+define('TEXT_MKDIR', 'Create Directory');
+
+Text for the Create Directory button, used when the ADMIN option have been set to TRUE.
+
+
+____________________________________________________________
+define('TEXT_NOTHING', 'Nothing Selected');
+
+Text for the information if nothing is selected. Used when the ADMIN option have been set to TRUE.
+
+
+____________________________________________________________
+define('TEXT_ONLY_ONE', 'Select only one element to use this function');
+
+Text label. Used when the ADMIN option have been set to TRUE.
+
+
+____________________________________________________________
+define('TEXT_ONE_IMAGE', 'Select only one image to use this function');
+
+Text label. Used when the ADMIN option have been set to TRUE.
 
 
 ____________________________________________________________
