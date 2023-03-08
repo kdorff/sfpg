@@ -1,10 +1,10 @@
 
 
-		Single File PHP Gallery 4.6.1 (SFPG)
+		Single File PHP Gallery 4.7.0 (SFPG)
 
 		See END USER LICENSE AGREEMENT for commercial use
 
-		Released: 08-Jan-2016
+		Released: 29-Dec-2016
 		http://sye.dk/sfpg/
 		By Kenny Svalgaard
 
@@ -67,7 +67,7 @@ FEATURES
  * PayPal integration with inventory counter for simple selling
  * Displays EXIF and IPTC information
  * Option to password protect gallery
- * Administrator options to rename, move, delete and create directories, images and files.
+ * Administrator options to upload, rename, move, delete and create directories, images and files.
  * Rotates images using EXIF information
  * 3D MPO red/cyan anaglyph and stereo image generation
  * Keyboard navigation
@@ -83,6 +83,11 @@ IMPORTANT INFORMATION
 
 * Make sure NOT to place any content from untrusted sources in the gallery. Code or scripts embedded in files could be sent to the end users, and could be executed.
 
+* The gallery contains an Admin option, which allow users to upload, delete, move, rename and create directories, images and files in the gallery.
+  If using this option, make sure that only administrators have access to the gallery.
+  Do not put the gallery unprotected on a public web server with this setting enabled. See the ADMIN option for details.
+  For this to work, PHP needs permission to create, modify and delete in the GALLERY_ROOT.
+
 * The gallery contains an automatic clean-up function that deletes unused files in DATA_ROOT.
   The gallery will clean up files in the DATA_ROOT that are no longer used by the gallery. So make sure not to use the DATA_ROOT for storing anything.
   The clean up routine is activated when viewing a directory where the number of subdirectories, images and/or files have changed since last access to the directory.
@@ -91,17 +96,15 @@ IMPORTANT INFORMATION
 * The gallery contains an option to delete images older than a set number of days. If using this option, make sure to have a backup of all your images in the GALLERY_ROOT.
   For this to work, PHP needs permission to delete in the GALLERY_ROOT.
 
-* The gallery contains an option to allow users to manage directories, images and files from the gallery.
-  If using this option, make sure that only administrators have access to the gallery.
-  Do not put the gallery unprotected on a public web server with this setting enabled. See the ADMIN option for details.
-  For this to work, PHP needs permission to create, modify and delete in the GALLERY_ROOT.
-
 
 ____________________________________________________________
 NEWS IN THIS VERSION
 
-* Added option to have thumbnails cropped to a square.
-* Fiexd: Description for images not showing when IPTC information is disabled.
+* Added Upload option to the admin functions.
+* Changed keyboard navigation to only have effect when viewing images. Except Esc, which can also be used for jumping a directory up.
+* Fixed the need to double click on elements on touch devices (iOS).
+* Fixed bug that made some servers not being able to use the admin option to move files.
+* Minor code cleanup changes.
 
 
 ____________________________________________________________
@@ -220,14 +223,15 @@ IMPORTANT: Remember that the password is stored in the gallery script in clear t
 ____________________________________________________________
 define('ADMIN', FALSE);
 
-** WARNING ** SETTING THIS OPTION TO ANYTHING OTHER THAN FALSE WILL ALLOW USERS TO DELETE, RENAME, MOVE and CREATE DIRECTORIES, IMAGES AND FILES IN THE GALLERY_ROOT **
+** WARNING ** SETTING THIS OPTION TO ANYTHING OTHER THAN FALSE WILL ALLOW USERS TO UPLOAD, DELETE, RENAME, MOVE and CREATE DIRECTORIES, IMAGES AND FILES IN THE GALLERY_ROOT **
 
-Set to FALSE to remove and disable the administrator functions.
+Set to FALSE to disable the administrator functions.
 Set to TRUE to allow users to access the administrator menu, where the following options are available:
- 1. Rename, move, and delete images and files.
- 2. Rename, move, delete and create directories.
- 3. Create, edit and remove descriptions for directories, images and files.
- 4. Create, edit and remove PayPal selling information for images.
+ 1. Upload of files to the gallery.
+ 2. Rename, move, and delete images and files.
+ 3. Rename, move, delete and create directories.
+ 4. Create, edit and remove descriptions for directories, images and files.
+ 5. Create, edit and remove PayPal selling information for images.
 
 IMPORTANT: Do not put the gallery unprotected on a public server with this setting enabled.
 IMPORTANT: Make sure that only administrators have access to the gallery, when this option is enabled (set to TRUE).
@@ -243,11 +247,19 @@ If you want to have a public gallery and also want to allow administrators to lo
 
 When this option is set to TRUE, the "Admin" button will be shown in the bottom menu. Click it to enter administrator menu.
 
-Clicking an element (directory, image or file), when in the administrator menu, will select the element (will be highlighted). Clicking a selected elements will deselected the element again.
+While in the administrator menu: Clicking an element (directory, image or file), will select the element (will be highlighted). Clicking a selected elements will deselected the element again.
 
+INFO: Uploading or Moving files to a directory that already contains files with the same name, will overwrite the files without confirmation.
 INFO: Deleting a directory will also delete all files inside the directory - Keep in mind that there could be files that are not shown in the gallery.
 INFO: Deleting, moving or renaming a file will also, if they exists, delete, move or rename the thumbnail (defined by FILE_THUMB_EXT) and the description (defined by DESC_EXT) for the file.
 INFO: Deleting, moving or renaming an image will also, if they exists, delete, move or rename the description file (defined by DESC_EXT) and the selling file (defined by PAYPAL_EXTENSION) for the image.
+
+To upload files or images to the gallery:
+ 1. Click the "Admin" button.
+ 2. Click the "Upload" button.
+ 3. Click the first button, normally called "Browse" or "Choose Files" (browser dependend).
+ 4. Select the files you want to upload. (On Windows multiple files can be selected by holding CTRL down).
+ 5. Click the "Upload" button.
 
 To delete elements from the gallery:
  1. Click the "Admin" button.

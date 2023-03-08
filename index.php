@@ -2,12 +2,12 @@
 
 	/*
 
-		Single File PHP Gallery 4.6.1 (SFPG)
+		Single File PHP Gallery 4.7.0 (SFPG)
 
 		See EULA in readme.txt for commercial use
 		See readme.txt for configuration
 
-		Released: 08-Jan-2016
+		Released: 29-Dec-2016
 		http://sye.dk/sfpg/
 		by Kenny Svalgaard
 
@@ -177,6 +177,7 @@
 	define('TEXT_MOVE', 'Move');
 	define('TEXT_MOVE_TO', 'Move to');
 	define('TEXT_MKDIR', 'Create Directory');
+	define('TEXT_UPLOAD', 'Upload');
 	define('TEXT_NOTHING', 'Nothing Selected');
 	define('TEXT_ONLY_ONE', 'Select only one element to use this function');
 	define('TEXT_ONE_IMAGE', 'Select only one image to use this function');
@@ -704,8 +705,8 @@
 	function sfpg_browse_dirs()
 	{
 		echo '<!DOCTYPE html><html><head><meta charset="'.CHARSET.'"></head><body onload="parent.sendData(document.getElementById(\'dataContainer\').innerHTML)"><div id="dataContainer"><br>'.
-		'&nbsp;'.TEXT_MOVE_TO.': <b>'.TEXT_HOME.GALLERY.'</b><br><br>'.
-		'<span class="sfpg_button" onclick="admMovePost(\''.sfpg_url_string(GALLERY,'').'\',\''.TEXT_HOME.GALLERY.'\')">OK</span>'.
+		'&nbsp;'.TEXT_MOVE_TO.': <b>'.TEXT_HOME.'/'.GALLERY.'</b><br><br>'.
+		'<span class="sfpg_button" onclick="admMovePost(\''.sfpg_url_string(GALLERY,'').'\',\''.TEXT_HOME.'/'.GALLERY.'\')">OK</span>'.
 		'<span class="sfpg_button" onclick="admMovePost(false,false)">'.TEXT_CANCEL.'</span><br><br>'.
 		'<span class="sfpg_button" onclick="admMove(\''.sfpg_url_string().'\')">'.TEXT_HOME.'</span>';
 		$dirs=explode('/',GALLERY);
@@ -715,21 +716,20 @@
 		{
 			if ($dir)
 			{
-				$path.='/'.$dir;
+				$path.=$dir.'/';
 				echo '<div class="in"><span class="sfpg_button" onclick="admMove(\''.sfpg_url_string($path,'').'\')">'.$dir.'</span>';
 				$postDiv.='</div>';
 			}
 		}
-		echo '<hr>';
 		$items=@scandir(GALLERY_ROOT.GALLERY);
 		if ($items!==false)
 		{
 			echo '<div class="in">';
 			foreach($items as $var)
 			{
-				if ((is_dir(GALLERY_ROOT.GALLERY.'/'.$var)) and ($var != '.') and ($var != '..'))
+				if ((is_dir(GALLERY_ROOT.GALLERY.$var)) and ($var != '.') and ($var != '..'))
 				{
-					echo '<span class="sfpg_button" onclick="admMove(\''.sfpg_url_string(GALLERY.'/'.$var,'').'\')">'.$var.'</span><br>';
+					echo '<span class="sfpg_button" onclick="admMove(\''.sfpg_url_string(GALLERY.$var.'/','').'\')">'.$var.'</span><br>';
 				}
 			}
 		}
@@ -821,10 +821,6 @@
 									$exif_time = explode(':', str_replace(' ', ':', $exif_data['DateTimeOriginal']));
 									$exif_info .= mktime($exif_time[3], $exif_time[4], $exif_time[5], $exif_time[1], $exif_time[2], $exif_time[0]);
 								}
-								else
-								{
-									$exif_info .= '';
-								}
 								$exif_info .= '|';
 								$exif_info .= (isset($exif_data['Model'])?$exif_data['Model']:'').'|';
 								$exif_info .= (isset($exif_data['ISOSpeedRatings'])?$exif_data['ISOSpeedRatings']:'').'|';
@@ -842,19 +838,11 @@
 									}
 									$exif_info .= 's';
 								}
-								else
-								{
-									$exif_info .= '';
-								}
 								$exif_info .= '|';
 								if(isset($exif_data['FNumber']))
 								{
 									$exif_FNumber=create_function('','return number_format(round('.$exif_data['FNumber'].',1),1);');
 									$exif_info .= 'f'.$exif_FNumber();
-								}
-								else
-								{
-									$exif_info .= '';
 								}
 								$exif_info .= '|';
 								if(isset($exif_data['FocalLength']))
@@ -862,18 +850,10 @@
 									$exif_FocalLength=create_function('','return number_format(round('.$exif_data['FocalLength'].',1),1);');
 									$exif_info .= $exif_FocalLength().'mm';
 								}
-								else
-								{
-									$exif_info .= '';
-								}
 								$exif_info .= '|';
 								if(isset($exif_data['Flash']))
 								{
 									$exif_info .= (($exif_data['Flash'] & 1) ? TEXT_YES : TEXT_NO);
-								}
-								else
-								{
-									$exif_info .= '';
 								}
 							}
 							else
@@ -887,7 +867,7 @@
 							$image_height = imagesy($image);
 							switch ($exif_data['Orientation'])
 							{
-								case 2 :
+								case 2:
 								{
 									$rotate = @imagecreatetruecolor($image_width, $image_height);
 									if (LOW_IMAGE_RESAMPLE_QUALITY)
@@ -902,14 +882,14 @@
 									$image_changed = TRUE;
 									break;
 								}
-								case 3 :
+								case 3:
 								{
 									$rotate = imagerotate($image, 180, 0);
 									imagedestroy($image);
 									$image_changed = TRUE;
 									break;
 								}
-								case 4 :
+								case 4:
 								{
 									$rotate = @imagecreatetruecolor($image_width, $image_height);
 									if (LOW_IMAGE_RESAMPLE_QUALITY)
@@ -924,7 +904,7 @@
 									$image_changed = TRUE;
 									break;
 								}
-								case 5 :
+								case 5:
 								{
 									$rotate = imagerotate($image, 270, 0);
 									imagedestroy($image);
@@ -941,14 +921,14 @@
 									$image_changed = TRUE;
 									break;
 								}
-								case 6 :
+								case 6:
 								{
 									$rotate = imagerotate($image, 270, 0);
 									imagedestroy($image);
 									$image_changed = TRUE;
 									break;
 								}
-								case 7 :
+								case 7:
 								{
 									$rotate = imagerotate($image, 90, 0);
 									imagedestroy($image);
@@ -965,7 +945,7 @@
 									$image_changed = TRUE;
 									break;
 								}
-								case 8 :
+								case 8:
 								{
 									$rotate = imagerotate($image, 90, 0);
 									imagedestroy($image);
@@ -1285,7 +1265,7 @@
 		var selectedImages = [];
 		var selectedFiles = [];
 		var selecting = false;
-		var hofc = hoverOnFirstClick();
+		var itd = isTouchDevice();
 
 		";
 		if (KEYBOARD_NAVIGATION)
@@ -1295,33 +1275,32 @@
 			{
 				if (!selecting)
 				{
-					var _Key = (window.event) ? event.keyCode : key.keyCode;
-					switch(_Key)
+					var k = (window.event) ? event.keyCode : key.keyCode;
+					if (index)
 					{
-						case 33: // Page up
-						case 38: // Up arrow
-						case 37: // Left arrow
-						cycleImg(-1); 
-						break;
-						case 32: // Space
-						case 34: // Page down
-						case 39: // Right arrow
-						case 40: // Down arrow
-						cycleImg(1);
-						break;			
-						case 27: // ESC
-						if(index)
+						if (k==33 || k==38 || k==37) /// Page up, Arrow up, Arrow left
+						{
+							cycleImg(-1);
+							return false;
+						}
+						else if (k==32 || k==34 || k==39 || k==40) /// Space, Page down, Arrow right, Arrow down
+						{
+							cycleImg(1);
+							return false;
+						}
+						else if (k==27) /// Esc
 						{
 							closeImageView();
+							return false;
 						}
-						else
+					}
+					else
+					{
+						if (k==27 && navLink.length>2) /// Esc
 						{
-							if(navLink.length>2)
-							{
-								document.location=phpSelf+'?sfpg='+navLink[navLink.length-3]+(showInfo?'&info=1':'');
-							}
+							document.location=phpSelf+'?sfpg='+navLink[navLink.length-3]+(showInfo?'&info=1':'');
+							return false;
 						}
-						break;
 					}
 				}
 			}
@@ -1335,7 +1314,7 @@
 		}
 
 
-		function hoverOnFirstClick()
+		function isTouchDevice()
 		{
 			var userAgent = window.navigator.userAgent;
 			if ((userAgent.match(/iPad/i) || userAgent.match(/iPhone/i)))
@@ -1566,6 +1545,7 @@
 						menu += '<span class=\"sfpg_button\" onclick=\"admRename()\">".sts(TEXT_RENAME)."</span>';
 						menu += '<span class=\"sfpg_button\" onclick=\"admMove()\">".sts(TEXT_MOVE)."</span>';
 						menu += '<span class=\"sfpg_button\" onclick=\"admMakeDir()\">".sts(TEXT_MKDIR)."</span>';
+						menu += '<span class=\"sfpg_button\" onclick=\"admUpload(true)\">".sts(TEXT_UPLOAD)."</span>';
 						menu += '<span class=\"sfpg_button\" onclick=\"admDesc()\">".sts(TEXT_DESCRIPTION)."</span>';
 						menu += '<span class=\"sfpg_button\" onclick=\"admSell()\">".sts(TEXT_PAYPAL_FOR_SALE)."</span>';
 						menu += '<span class=\"sfpg_button_on\" onclick=\"toggleSelect()\">".sts(TEXT_ADMIN)."</span>';
@@ -1976,10 +1956,10 @@
 		function setOpacity(id, opacity)
 		{
 			var element = gebi(id).style;
-			element.opacity = (opacity / 100);	// std
-			element.MozOpacity = (opacity / 100);	// firefox
-			element.filter = 'alpha(opacity=' + opacity + ')';	// IE
-			element.KhtmlOpacity = (opacity / 100);	// Mac
+			element.opacity = (opacity / 100);	/// std
+			element.MozOpacity = (opacity / 100);	/// firefox
+			element.filter = 'alpha(opacity=' + opacity + ')';	/// IE
+			element.KhtmlOpacity = (opacity / 100);	/// Mac
 		}
 
 
@@ -2306,6 +2286,29 @@
 		}
 
 
+		function admUpload(show)
+		{
+			var ele=gebi('box_admin');
+			if (show)
+			{
+				var boxForm = '".sts(TEXT_UPLOAD)." -> '+dirName[0]+'<br><br>'+
+				'<form action=\"'+phpSelf+'?sfpg='+dirLink[0]+(showInfo?'&info=1':'')+'\" method=\"post\" multipart=\"\" enctype=\"multipart/form-data\">'+
+				'<input type=\"file\" name=\"ulele[]\" multiple> '+
+				'<input type=\"submit\" value=\"".sts(TEXT_UPLOAD)."\"> '+
+				'<input type=\"button\" onclick=\"admUpload(false)\" value=\"".sts(TEXT_CANCEL)."\">'+
+				'<input type=\"hidden\" name=\"func\" value=\"upload\" multiple>'+
+				'</form>';
+				ele.innerHTML=boxForm;
+				ele.style.visibility='visible';
+			}
+			else
+			{
+				ele.innerHTML='';
+				ele.style.visibility='hidden';
+			}
+		}
+
+
 		function admDescPost(link, name, action)
 		{
 			var text=gebi('desctxt').value;
@@ -2427,29 +2430,22 @@
 
 		function mouseOver(that, type, nr)
 		{
-			if (hofc)
+			fillInfo(type, nr);
+			if (isSelected(type, nr))
 			{
-				mouseClick(that, type, nr);
+				that.className='innerbox_marked';
 			}
-			else
+			else if (type=='dir')
 			{
-				fillInfo(type, nr);
-				if (isSelected(type, nr))
-				{
-					that.className='innerbox_marked';
-				}
-				else if (type=='dir')
-				{
-					that.className='innerboxdir_hover';
-				}
-				else if (type=='img')
-				{
-					that.className='innerboximg_hover';
-				}
-				else if (type=='file')
-				{
-					that.className='innerboxfile_hover';
-				}
+				that.className='innerboxdir_hover';
+			}
+			else if (type=='img')
+			{
+				that.className='innerboximg_hover';
+			}
+			else if (type=='file')
+			{
+				that.className='innerboxfile_hover';
 			}
 		}
 
@@ -2520,7 +2516,12 @@
 			var content='';
 			if (type == 'dir')
 			{
-				content += '<div id=\"dir'+elementNumber+'\" onclick=\"mouseClick(this, \'dir\', '+elementNumber+')\" onmouseover=\"mouseOver(this, \'dir\', '+elementNumber+')\" onmouseout=\"mouseOut(this, \'dir\', '+elementNumber+')\" class=\"innerboxdir\">';
+				content += '<div id=\"dir'+elementNumber+'\" onclick=\"mouseClick(this, \'dir\', '+elementNumber+')\"';
+				if (!itd)
+				{
+					content += ' onmouseover=\"mouseOver(this, \'dir\', '+elementNumber+')\" onmouseout=\"mouseOut(this, \'dir\', '+elementNumber+')\"';
+				}
+				content += ' class=\"innerboxdir\">';
 				content += '<div class=\"thumbimgbox\">';
 				if (dirThumb[elementNumber] != '')
 				{
@@ -2536,14 +2537,24 @@
 			}
 			else if (type == 'img')
 			{
-				content += '<div id=\"img'+elementNumber+'\" onclick=\"mouseClick(this, \'img\', '+elementNumber+')\" onmouseover=\"mouseOver(this, \'img\', '+elementNumber+')\" onmouseout=\"mouseOut(this, \'img\', '+elementNumber+')\" class=\"innerboximg\">';
+				content += '<div id=\"img'+elementNumber+'\" onclick=\"mouseClick(this, \'img\', '+elementNumber+')\"';
+				if (!itd)
+				{
+					content += ' onmouseover=\"mouseOver(this, \'img\', '+elementNumber+')\" onmouseout=\"mouseOut(this, \'img\', '+elementNumber+')\"';
+				}
+				content += ' class=\"innerboximg\">';
 				content += '<div class=\"thumbimgbox\"><img class=\"thumb\" alt=\"\" src=\"'+phpSelf+'?cmd=thumb&sfpg='+imgLink[elementNumber]+'\"></div>';
 				". (THUMB_CHARS_MAX ? "content += thumbDisplayName(imgName[elementNumber]);" : "")."
 				content += '</div>';
 			}
 			else if (type == 'file')
 			{
-				content += '<div id=\"file'+elementNumber+'\" onclick=\"mouseClick(this, \'file\', '+elementNumber+')\" onmouseover=\"mouseOver(this, \'file\', '+elementNumber+')\" onmouseout=\"mouseOut(this, \'file\', '+elementNumber+')\" class=\"innerboxfile\">';
+				content += '<div id=\"file'+elementNumber+'\" onclick=\"mouseClick(this, \'file\', '+elementNumber+')\"';
+				if (!itd)
+				{
+					content += ' onmouseover=\"mouseOver(this, \'file\', '+elementNumber+')\" onmouseout=\"mouseOut(this, \'file\', '+elementNumber+')\"';
+				}
+				content += ' class=\"innerboxfile\">';
 				content += '<div class=\"thumbimgbox\">';
 				if (fileThumb[elementNumber] != '')
 				{
@@ -2919,7 +2930,7 @@
 			else
 			{
 				header('Content-Type: text/html; charset="'.CHARSET.'"');
-				echo '<!DOCTYPE html><html><head><meta charset="'.CHARSET.'"><title></title></head><body>'.
+				echo '<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"><meta charset="'.CHARSET.'"><title></title></head><body>'.
 				'<form  name="pf" action="'.$_SERVER['REQUEST_URI'].'" method="post">'.
 				'<input type="password" name="pw" id="pw" autofocus>'.
 				'<input type="submit" name="su" value="'.TEXT_LOGIN.'">'.
@@ -3014,10 +3025,10 @@
 			{
 				if (isset($_POST['toFolder']) and isset($_POST['elems']) and is_array($_POST['elems']) and (count($_POST['elems']) > 0))
 				{
-					$to_dir = sfpg_url_decode($_POST['toFolder']);
-					if (($to_dir!==false) and ($to_dir[1]==='') and is_dir(GALLERY_ROOT.$to_dir[0]))
+					$to_dir_array = sfpg_url_decode($_POST['toFolder']);
+					if (($to_dir_array!==false) and ($to_dir_array[1]==='') and is_dir(GALLERY_ROOT.$to_dir_array[0]))
 					{
-						$to_dir=GALLERY_ROOT.$to_dir[0].($to_dir[0]!==''?'/':'');
+						$to_dir=GALLERY_ROOT.$to_dir_array[0];
 						foreach ($_POST['elems'] as $elem)
 						{
 							$move_elem = sfpg_url_decode($elem);
@@ -3040,18 +3051,18 @@
 								else
 								{
 									$file_to_move=GALLERY_ROOT.$move_elem[0].$move_elem[1];
-									rename($file_to_move, GALLERY_ROOT.$to_dir.'/'.$move_elem[1]);
+									rename($file_to_move, $to_dir.$move_elem[1]);
 									if (file_exists($file_to_move.DESC_EXT))
 									{
-										rename($file_to_move.DESC_EXT, GALLERY_ROOT.$to_dir.'/'.$move_elem[1].DESC_EXT);
+										rename($file_to_move.DESC_EXT, $to_dir.$move_elem[1].DESC_EXT);
 									}
 									if (sfpg_image_type($file_to_move) and (file_exists($file_to_move.PAYPAL_EXTENSION)))
 									{
-										rename($file_to_move.PAYPAL_EXTENSION, GALLERY_ROOT.$to_dir.'/'.$move_elem[1].PAYPAL_EXTENSION);
+										rename($file_to_move.PAYPAL_EXTENSION, $to_dir.$move_elem[1].PAYPAL_EXTENSION);
 									}
 									elseif (file_exists($file_to_move.FILE_THUMB_EXT))
 									{
-										rename($file_to_move.FILE_THUMB_EXT, GALLERY_ROOT.$to_dir.'/'.$move_elem[1].FILE_THUMB_EXT);
+										rename($file_to_move.FILE_THUMB_EXT, $to_dir.$move_elem[1].FILE_THUMB_EXT);
 									}
 								}
 							}
@@ -3205,6 +3216,20 @@
 					}
 				}
 			}
+			if ($_POST['func']==='upload')
+			{
+				if (isset($_FILES['ulele']))
+				{
+					$nrUlEle=count($_FILES['ulele']['name']);
+					for ($i=0; $i<$nrUlEle; $i++)
+					{
+						if ($_FILES['ulele']['error'][$i]===0)
+						{
+							move_uploaded_file($_FILES['ulele']['tmp_name'][$i],GALLERY_ROOT.GALLERY.$_FILES['ulele']['name'][$i]);
+						}
+					}
+				}
+			}
 		}
 		if ($_GET['cmd'] == 'dirs')
 		{
@@ -3218,16 +3243,16 @@
 	"
 	img
 	{
-		-ms-interpolation-mode : bicubic;
+		-ms-interpolation-mode:bicubic;
 	}
 
 	body.sfpg
 	{
-		background : $color_body_back;
-		color: $color_body_text;
-		font-family: Arial, Helvetica, sans-serif;
-		font-size: ".FONT_SIZE."px;
-		font-weight: normal;
+		background:$color_body_back;
+		color:$color_body_text;
+		font-family:Arial, Helvetica, sans-serif;
+		font-size:".FONT_SIZE."px;
+		font-weight:normal;
 		margin:0px;
 		padding:0px;
 		overflow:hidden;
@@ -3235,227 +3260,227 @@
 
 	body.sfpg a:active, body.sfpg a:link, body.sfpg a:visited, body.sfpg a:focus
 	{
-		color : $color_body_link;
-		text-decoration : none;
+		color:$color_body_link;
+		text-decoration:none;
 	}
 
 	body.sfpg a:hover
 	{
-		color : $color_body_hover;
-		text-decoration : none;
+		color:$color_body_hover;
+		text-decoration:none;
 	}
 
 	table
 	{
-		border-spacing: 0px;
-		border-collapse: separate;
-		font-size: ".FONT_SIZE."px;
+		border-spacing:0px;
+		border-collapse:separate;
+		font-size:".FONT_SIZE."px;
 		height:100%;
 		width:100%;
 	}
 
 	table.info td
 	{
-		padding : 10px;
-		vertical-align : top;
+		padding:10px;
+		vertical-align:top;
 	}
 
 	table.sfpg_disp
 	{
-		text-align : center;
-		padding : 0px;
-		cellspacing : 0px;
+		text-align:center;
+		padding:0px;
+		cellspacing:0px;
 	}
 
 	table.sfpg_disp td.menu
 	{
-		background : $color_menu_back;
-		border-top : 1px solid $color_menu_top;
-		vertical-align : middle;
-		white-space: nowrap;
+		background:$color_menu_back;
+		border-top:1px solid $color_menu_top;
+		vertical-align:middle;
+		white-space:nowrap;
 	}
 
 	table.sfpg_disp td.navi
 	{
-		height: ".NAV_BAR_HEIGHT."px;
-		background: $color_navbar_back;
-		border-top: 1px solid $color_navbar_top;
-		vertical-align: middle;
-		white-space: nowrap;
+		height:".NAV_BAR_HEIGHT."px;
+		background:$color_navbar_back;
+		border-top:1px solid $color_navbar_top;
+		vertical-align:middle;
+		white-space:nowrap;
 	}
 
 	table.sfpg_disp td.mid
 	{
-		vertical-align: middle;
+		vertical-align:middle;
 	}
 
 	div.in
 	{
-		line-height: 170%;
-		padding-left: 30px;
+		line-height:170%;
+		padding-left:30px;
 	}
 
 	.sfpg_info_text, .loading
 	{
-		".(ROUND_CORNERS?'border-radius: '.ROUND_CORNERS.'px;':'')."
-		background : $color_info_back;
-		border : 1px solid $color_info_border;
-		color : $color_info_text;
-		padding : 1px 4px 1px 4px;
-		width : 200px;
+		".(ROUND_CORNERS?'border-radius:'.ROUND_CORNERS.'px;':'')."
+		background:$color_info_back;
+		border:1px solid $color_info_border;
+		color:$color_info_text;
+		padding:1px 4px 1px 4px;
+		width:200px;
 	}
 	
 	.loading
 	{
-		padding : 20px 20px 20px 20px;
-		margin-right: auto;
-		margin-left: auto;
+		padding:20px 20px 20px 20px;
+		margin-right:auto;
+		margin-left:auto;
 	}
 	
 	.sfpg_button, .sfpg_button_hover, .sfpg_button_on, .sfpg_button_nav, .sfpg_button_disabled
 	{
-		".(ROUND_CORNERS?'border-radius: '.ROUND_CORNERS.'px;':'')."
-		cursor : pointer;
-		background : $color_button_back;
-		border : 1px solid $color_button_border;
-		color : $color_button_text;
-		padding : 0px 5px 0px 5px;
-		margin : 0px 5px 0px 5px;
-		white-space: nowrap;
+		".(ROUND_CORNERS?'border-radius:'.ROUND_CORNERS.'px;':'')."
+		cursor:pointer;
+		background:$color_button_back;
+		border:1px solid $color_button_border;
+		color:$color_button_text;
+		padding:0px 5px 0px 5px;
+		margin:0px 5px 0px 5px;
+		white-space:nowrap;
 	}
 
 	.sfpg_button:hover, .sfpg_button_nav:hover
 	{
-		background : $color_button_hover;
-		color : $color_button_hover_text;
+		background:$color_button_hover;
+		color:$color_button_hover_text;
 	}
 
 	.sfpg_button_hover
 	{
-		background : $color_button_hover;
-		color : $color_button_hover_text;
+		background:$color_button_hover;
+		color:$color_button_hover_text;
 	}
 
 	.sfpg_button_on
 	{
-		background : $color_button_on;
-		color : $color_button_text_on;
+		background:$color_button_on;
+		color:$color_button_text_on;
 	}
 
 	.sfpg_button_disabled
 	{
-		cursor : default;
-		border : 1px solid $color_button_border_off;
-		background : $color_button_back_off;
-		color : $color_button_text_off;
+		cursor:default;
+		border:1px solid $color_button_border_off;
+		background:$color_button_back_off;
+		color:$color_button_text_off;
 	}
 
 	.sfpg_button_nav
 	{
-		border: 1px solid $color_button_nav_border;
-		background: $color_button_nav_back;
-		color: $color_button_nav_text;
+		border:1px solid $color_button_nav_border;
+		background:$color_button_nav_back;
+		color:$color_button_nav_text;
 	}
 
 	.thumbbox, .descbox
 	{
-		vertical-align : top;
+		vertical-align:top;
 		display:-moz-inline-stack;
 		display:inline-block;
 		zoom:1;
 		*display:inline;
-		width: ".((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN + THUMB_BOX_MARGIN)) + THUMB_MAX_WIDTH + 2)."px;
-		height: ".((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN + THUMB_BOX_MARGIN)) + THUMB_MAX_HEIGHT + 2 + THUMB_BOX_EXTRA_HEIGHT)."px;
-		margin: 0px;
-		padding: 0px;
+		width:".((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN + THUMB_BOX_MARGIN)) + THUMB_MAX_WIDTH + 2)."px;
+		height:".((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN + THUMB_BOX_MARGIN)) + THUMB_MAX_HEIGHT + 2 + THUMB_BOX_EXTRA_HEIGHT)."px;
+		margin:0px;
+		padding:0px;
 	}
 
 	.descbox
 	{
-		width: ".(((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN + THUMB_BOX_MARGIN)) + THUMB_MAX_WIDTH + 2)*2)."px;
+		width:".(((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN + THUMB_BOX_MARGIN)) + THUMB_MAX_WIDTH + 2)*2)."px;
 	}
 
 	.thumbimgbox
 	{
-		width: ".((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN)) + THUMB_MAX_WIDTH)."px;
-		height: ".((THUMB_BORDER_WIDTH * 2) + THUMB_MARGIN + THUMB_MAX_HEIGHT + 6)."px;
-		margin: 0px; 
-		padding: 0px;
+		width:".((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN)) + THUMB_MAX_WIDTH)."px;
+		height:".((THUMB_BORDER_WIDTH * 2) + THUMB_MARGIN + THUMB_MAX_HEIGHT + 6)."px;
+		margin:0px; 
+		padding:0px;
 	}
 
 	.innerboxdir, .innerboximg, .innerboxfile, .innerboxdir_hover, .innerboximg_hover, .innerboxfile_hover, .innerbox_marked
 	{
-		".(ROUND_CORNERS?'border-radius: '.(ROUND_CORNERS*2).'px;':'')."
+		".(ROUND_CORNERS?'border-radius:'.(ROUND_CORNERS*2).'px;':'')."
 		cursor:pointer;
-		margin: ".THUMB_BOX_MARGIN."px;
-		padding: 0px;
-		width: ".((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN)) + THUMB_MAX_WIDTH + 2)."px;
-		height: ".((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN)) + THUMB_MAX_HEIGHT + 2 + THUMB_BOX_EXTRA_HEIGHT)."px;
+		margin:".THUMB_BOX_MARGIN."px;
+		padding:0px;
+		width:".((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN)) + THUMB_MAX_WIDTH + 2)."px;
+		height:".((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN)) + THUMB_MAX_HEIGHT + 2 + THUMB_BOX_EXTRA_HEIGHT)."px;
 	}
 
 	.innerboxdesc
 	{
-		text-align : left;
+		text-align:left;
 		overflow:auto;
-		".(ROUND_CORNERS?'border-radius: '.(ROUND_CORNERS*2).'px;':'')."
-		margin: ".THUMB_BOX_MARGIN."px;
-		padding: 5px;
-		width: ".(2*(THUMB_BOX_MARGIN+(2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN)) + THUMB_MAX_WIDTH + 2 - 5))."px;
-		height: ".((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN)) + THUMB_MAX_HEIGHT + 2 + THUMB_BOX_EXTRA_HEIGHT - 10)."px;
-		border: 1px solid $color_desc_box_border;
-		background : $color_desc_box_back;
-		color : $color_desc_box_text;
+		".(ROUND_CORNERS?'border-radius:'.(ROUND_CORNERS*2).'px;':'')."
+		margin:".THUMB_BOX_MARGIN."px;
+		padding:5px;
+		width:".(2*(THUMB_BOX_MARGIN+(2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN)) + THUMB_MAX_WIDTH + 2 - 5))."px;
+		height:".((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN)) + THUMB_MAX_HEIGHT + 2 + THUMB_BOX_EXTRA_HEIGHT - 10)."px;
+		border:1px solid $color_desc_box_border;
+		background:$color_desc_box_back;
+		color:$color_desc_box_text;
 	}
 
 	.innerboxdir, .innerboxdir_hover, .innerbox_marked
 	{
-		border: 1px solid $color_dir_box_border;
-		background : $color_dir_box_back;
-		color : $color_dir_box_text;
+		border:1px solid $color_dir_box_border;
+		background:$color_dir_box_back;
+		color:$color_dir_box_text;
 	}
 
 	.innerboximg, .innerboximg_hover
 	{
-		border: 1px solid $color_img_box_border;
-		background : $color_img_box_back;
-		color : $color_img_box_text;
+		border:1px solid $color_img_box_border;
+		background:$color_img_box_back;
+		color:$color_img_box_text;
 	}
 
 	.innerboxfile, .innerboxfile_hover
 	{
-		border: 1px solid $color_file_box_border;
-		background : $color_file_box_back;
-		color : $color_file_box_text;
+		border:1px solid $color_file_box_border;
+		background:$color_file_box_back;
+		color:$color_file_box_text;
 	}
 
 	.innerboxdir_hover
 	{
-		background : $color_dir_hover;
-		color : $color_dir_hover_text;
+		background:$color_dir_hover;
+		color:$color_dir_hover_text;
 	}
 
 	.innerboximg_hover
 	{
-		background : $color_img_hover;
-		color : $color_img_hover_text;
+		background:$color_img_hover;
+		color:$color_img_hover_text;
 	}
 
 	.innerboxfile_hover
 	{
-		background : $color_file_hover;
-		color : $color_file_hover_text;
+		background:$color_file_hover;
+		color:$color_file_hover_text;
 	}
 
 	.innerbox_marked
 	{
-		background : $color_marked_back;
-		color : $color_marked_text;
+		background:$color_marked_back;
+		color:$color_marked_text;
 	}
 
 	.full_image
 	{
 		cursor:pointer;
-		border : ".FULLIMG_BORDER_WIDTH."px solid $color_fullimg_border;
+		border:".FULLIMG_BORDER_WIDTH."px solid $color_fullimg_border;
 	}
 
 	.banner
@@ -3465,9 +3490,9 @@
 
 	.thumb
 	{
-		".(ROUND_CORNERS?'border-radius: '.ROUND_CORNERS.'px;':'')."
-		margin: ".THUMB_MARGIN."px ".THUMB_MARGIN."px 5px ".THUMB_MARGIN."px;
-		border : ".THUMB_BORDER_WIDTH."px solid $color_thumb_border;
+		".(ROUND_CORNERS?'border-radius:'.ROUND_CORNERS.'px;':'')."
+		margin:".THUMB_MARGIN."px ".THUMB_MARGIN."px 5px ".THUMB_MARGIN."px;
+		border:".THUMB_BORDER_WIDTH."px solid $color_thumb_border;
 	}
 
 	.sye
@@ -3487,7 +3512,7 @@
 		z-index:1020;
 		overflow:auto;
 		visibility:hidden;
-		text-align : center;
+		text-align:center;
 	}
 
 	.box_wait
@@ -3498,7 +3523,7 @@
 		z-index:1015;
 		overflow:auto;
 		visibility:hidden;
-		text-align : center;
+		text-align:center;
 	}
 
 	.box_hud
@@ -3525,7 +3550,7 @@
 
 	.box_info
 	{
-		".(ROUND_CORNERS?'border-radius: '.(ROUND_CORNERS*2).'px;':'')."
+		".(ROUND_CORNERS?'border-radius:'.(ROUND_CORNERS*2).'px;':'')."
 		position:absolute;
 		top:10px;
 		left:10px;
@@ -3533,8 +3558,8 @@
 		z-index:1040;
 		visibility:hidden;
 		overflow:auto;
-		border : 1px solid $color_infobox_border;
-		background: $color_infobox_back;
+		border:1px solid $color_infobox_border;
+		background:$color_infobox_back;
 	}
 
 	.box_admin
@@ -3545,7 +3570,7 @@
 		visibility:hidden;
 		overflow:auto;
 		z-index:1240;
-		background: $color_infobox_back;
+		background:$color_infobox_back;
 	}
 
 	.box_data
