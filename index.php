@@ -2,12 +2,12 @@
 
 	/*
 
-		Single File PHP Gallery 4.7.0 (SFPG)
+		Single File PHP Gallery 4.7.1 (SFPG)
 
 		See EULA in readme.txt for commercial use
 		See readme.txt for configuration
 
-		Released: 29-Dec-2016
+		Released: 19-Dec-2018
 		http://sye.dk/sfpg/
 		by Kenny Svalgaard
 
@@ -73,6 +73,7 @@
 	define('THUMB_SQUARE', FALSE);
 	define('THUMB_ENLARGE', FALSE);
 	define('THUMB_JPEG_QUALITY', 75);
+	define('THUMB_PNG_ALPHA', TRUE);
 
 	define('USE_PREVIEW', FALSE);
 	define('PREVIEW_MAX_WIDTH', 600);
@@ -113,6 +114,7 @@
 	define('SHOW_MAX_IMAGES', FALSE);
 	define('SHOW_IMAGE_DAYS', FALSE);
 	define('DELETE_IMAGE_DAYS', FALSE);
+	define('DELETE_EMPTY_DIRS', FALSE);
 
 	define('PAYPAL_ENABLED', FALSE);
 	define('PAYPAL_ACCOUNT', '');
@@ -135,8 +137,8 @@
 	define('TEXT_CLOSE_IMG_VIEW', 'Close Image');
 	define('TEXT_ACTUAL_SIZE', 'Actual Size');
 	define('TEXT_FULLRES', 'Full resolution');
-	define('TEXT_PREVIOUS', '<< Previous');
-	define('TEXT_NEXT', 'Next >>');
+	define('TEXT_PREVIOUS', '&#x25C4;&#xFE0E; Previous');
+	define('TEXT_NEXT', 'Next &#x25BA;&#xFE0E;');
 	define('TEXT_INFO', 'Information');
 	define('TEXT_DOWNLOAD', 'Download full-size image');
 	define('TEXT_SLIDESHOW', 'Slideshow');
@@ -178,6 +180,7 @@
 	define('TEXT_MOVE_TO', 'Move to');
 	define('TEXT_MKDIR', 'Create Directory');
 	define('TEXT_UPLOAD', 'Upload');
+	define('TEXT_INVERT_SELECTION', 'Invert Select');
 	define('TEXT_NOTHING', 'Nothing Selected');
 	define('TEXT_ONLY_ONE', 'Select only one element to use this function');
 	define('TEXT_ONE_IMAGE', 'Select only one image to use this function');
@@ -1045,15 +1048,20 @@
 					fclose($fp);
 				}
 				list($new_img_width, $new_img_height) = sfpg_aspect_resize(imagesx($image), imagesy($image), $max_width, $max_height, $enlarge);
-				if(THUMB_SQUARE)
+				if(THUMB_SQUARE and ($func != 'preview'))
 				{
 					$new_img_width = $max_width;
 					$new_img_height = $max_width;
 				}
 				$new_image = imagecreatetruecolor($new_img_width, $new_img_height);
-				if (LOW_IMAGE_RESAMPLE_QUALITY)
+				if(THUMB_PNG_ALPHA and ($image_type == 'png'))
 				{
-					if(THUMB_SQUARE)
+					imagealphablending($new_image, false);
+					imagesavealpha($new_image,true);
+				}
+				if(LOW_IMAGE_RESAMPLE_QUALITY)
+				{
+					if(THUMB_SQUARE and ($func != 'preview'))
 					{
 						$min_size = min(imagesx($image), imagesy($image));
 						imagecopyresized($new_image, $image, 0, 0, round((imagesx($image)- $min_size)/2), 0, $new_img_width, $new_img_height, $min_size, $min_size);
@@ -1065,7 +1073,7 @@
 				}
 				else
 				{
-					if(THUMB_SQUARE)
+					if(THUMB_SQUARE and ($func != 'preview'))
 					{
 						$min_size = min(imagesx($image), imagesy($image));
 						imagecopyresampled($new_image, $image, 0, 0, round((imagesx($image)- $min_size)/2), 0, $new_img_width, $new_img_height, $min_size, $min_size);
@@ -1298,7 +1306,7 @@
 					{
 						if (k==27 && navLink.length>2) /// Esc
 						{
-							document.location=phpSelf+'?sfpg='+navLink[navLink.length-3]+(showInfo?'&info=1':'');
+							document.location=phpSelf+'?sfpg='+navLink[navLink.length-3]+(showInfo?'&info=1':'&info=0');
 							return false;
 						}
 					}
@@ -1418,8 +1426,13 @@
 				newImgX = imgFullWidth;
 				newImgY = imgFullHeight;
 				gebi('img_resize').innerHTML = '".sts(TEXT_NOT_SCALED)."';
+			}";
+			if (USE_PREVIEW)
+			{
+				echo"
+				gebi('img_size').innerHTML = imgFullWidth + ' x ' + imgFullHeight;";
 			}
-			gebi('img_size').innerHTML = imgFullWidth + ' x ' + imgFullHeight;
+			echo"
 			gebi('full').width = newImgX;
 			gebi('full').height = newImgY;
 		}
@@ -1548,6 +1561,7 @@
 						menu += '<span class=\"sfpg_button\" onclick=\"admUpload(true)\">".sts(TEXT_UPLOAD)."</span>';
 						menu += '<span class=\"sfpg_button\" onclick=\"admDesc()\">".sts(TEXT_DESCRIPTION)."</span>';
 						menu += '<span class=\"sfpg_button\" onclick=\"admSell()\">".sts(TEXT_PAYPAL_FOR_SALE)."</span>';
+						menu += '<span class=\"sfpg_button\" onclick=\"invertSelection()\">".sts(TEXT_INVERT_SELECTION)."</span>';
 						menu += '<span class=\"sfpg_button_on\" onclick=\"toggleSelect()\">".sts(TEXT_ADMIN)."</span>';
 					}
 					else
@@ -1701,16 +1715,22 @@
 						info += '<strong>".sts(TEXT_INFO)."</strong><br><div class=\"sfpg_info_text\">';
 						info += '".sts(TEXT_DATE).": '+dateFormat(splint[0])+'<br>';
 						info += '".sts(TEXT_IMAGESIZE).": '+splint[2]+' x '+splint[3]+'<br>';
-						info += '".sts(TEXT_DISPLAYED_IMAGE).": <span id=\"img_size\"></span> (';
-						if (fullImgLoaded || ".(USE_PREVIEW ? "false" : "true").")
+						";
+						if (USE_PREVIEW)
 						{
-							info += '".sts(TEXT_THIS_IS_FULL)."';
+							echo"
+							info += '".sts(TEXT_DISPLAYED_IMAGE).": <span id=\"img_size\"></span> (';
+							if (fullImgLoaded)
+							{
+								info += '".sts(TEXT_THIS_IS_FULL)."';
+							}
+							else
+							{
+								info += '".sts(TEXT_THIS_IS_PREVIEW)."';
+							}
+							info += ')<br>';";
 						}
-						else
-						{
-							info += '".sts(TEXT_THIS_IS_PREVIEW)."';
-						}
-						info += ')<br>';
+						echo"
 						info += '".sts(TEXT_SCALED_TO).": <span id=\"img_resize\"></span><br>';
 						info += '".sts(TEXT_FILESIZE).": '+splint[1]+'<br>';
 						info += '".sts(TEXT_IMAGE_NUMBER).": '+id+' / '+(imgLink.length-1)+'<br>';
@@ -1835,7 +1855,7 @@
 
 		function openGallery(id, type)
 		{
-			window.location=phpSelf+'?sfpg='+((type=='nav')?navLink[id]:dirLink[id])+(showInfo?'&info=1':'');
+			window.location=phpSelf+'?sfpg='+((type=='nav')?navLink[id]:dirLink[id])+(showInfo?'&info=1':'&info=0');
 		}
 
 
@@ -2040,6 +2060,27 @@
 			{
 				selecting = true;
 				showMenu();
+			}
+		}
+
+
+		function invertSelection()
+		{
+			for (i = 1; i < dirLink.length; i++)
+			{
+				selectElement(gebi('dir'+i), selectedDirs, i);
+				gebi('dir'+i).className=(isSelected('dir', i)?'innerbox_marked':'innerboxdir');
+			}
+			for (i = 1; i < imgLink.length; i++)
+			{
+				selectElement(gebi('img'+i), selectedImages, i);
+				gebi('img'+i).className=(isSelected('img', i)?'innerbox_marked':'innerboximg');
+				
+			}
+			for (i = 1; i < fileLink.length; i++)
+			{
+				selectElement(gebi('file'+i), selectedFiles, i);
+				gebi('file'+i).className=(isSelected('file', i)?'innerbox_marked':'innerboxfile');
 			}
 		}
 
@@ -2292,7 +2333,7 @@
 			if (show)
 			{
 				var boxForm = '".sts(TEXT_UPLOAD)." -> '+dirName[0]+'<br><br>'+
-				'<form action=\"'+phpSelf+'?sfpg='+dirLink[0]+(showInfo?'&info=1':'')+'\" method=\"post\" multipart=\"\" enctype=\"multipart/form-data\">'+
+				'<form action=\"'+phpSelf+'?sfpg='+dirLink[0]+(showInfo?'&info=1':'&info=0')+'\" method=\"post\" multipart=\"\" enctype=\"multipart/form-data\">'+
 				'<input type=\"file\" name=\"ulele[]\" multiple> '+
 				'<input type=\"submit\" value=\"".sts(TEXT_UPLOAD)."\"> '+
 				'<input type=\"button\" onclick=\"admUpload(false)\" value=\"".sts(TEXT_CANCEL)."\">'+
@@ -2375,7 +2416,7 @@
 			var selectForm = document.createElement('form');
 			selectForm.setAttribute('method','post');
 			selectForm.setAttribute('id','selectForm');
-			selectForm.setAttribute('action', phpSelf+'?sfpg='+dirLink[0]+(showInfo?'&info=1':''));
+			selectForm.setAttribute('action', phpSelf+'?sfpg='+dirLink[0]+(showInfo?'&info=1':'&info=0'));
 			return selectForm;
 		}
 
@@ -2671,7 +2712,7 @@
 				var sellSplint = imgSell[id].split('|');
 				var SelfUrl = 'http://".$_SERVER["DOMAIN_NAME"].$_SERVER["PHP_SELF"]."';
 				var returnSold = SelfUrl+'?sold='+buyId;
-				var returnCancel = SelfUrl+'?sfpg=".$_GET['sfpg']."';
+				var returnCancel = SelfUrl+'?sfpg=".(sfpg_url_decode($_GET['sfpg'])!=FALSE?$_GET['sfpg']:'')."';
 				gebi('paypalReturn').value = returnSold;
 				gebi('paypalCancelReturn').value = returnCancel;
 				gebi('paypalAmount').value = sellSplint[0];
@@ -2731,7 +2772,7 @@
 				else
 				{
 					echo "navLink[".$i."] = '';\n";
-					echo "navName[".$i."] = '".sts(" > ")."';\n\n";
+					echo "navName[".$i."] = '".sts(" &#10137;&#xFE0E; ")."';\n\n";
 					$i++;
 				}
 				echo "navLink[".$i."] = '".sfpg_url_string($a_links[$link_nr])."';\n";
@@ -2754,6 +2795,43 @@
 				sfpg_delete_from_data_root(GALLERY.DIR_THUMB_FILE);
 			}
 		}
+
+		$item = 1;
+		foreach ($dirs as $val)
+		{
+			if (!file_exists(DATA_ROOT."info/".GALLERY.$val."/_sfpg_dir"))
+			{
+				sfpg_set_dir_info(GALLERY.$val."/");
+			}
+			$filed = explode("|", file_get_contents(DATA_ROOT."info/".GALLERY.$val."/_sfpg_dir"));
+			if (DELETE_EMPTY_DIRS and ($filed[0]==0) and ($filed[1]==0) and ($filed[2]==0))
+			{
+				sfpg_set_dir_info(GALLERY.$val."/");
+				$filed = explode("|", file_get_contents(DATA_ROOT."info/".GALLERY.$val."/_sfpg_dir"));
+			}
+			if (DELETE_EMPTY_DIRS and ($filed[0]==0) and ($filed[1]==0) and ($filed[2]==0))
+			{
+				sfpg_delete(GALLERY.$val."/");
+			}
+			else
+			{
+				$display_name = @file(GALLERY_ROOT.GALLERY.$val."/".DIR_NAME_FILE);
+				if ($display_name)
+				{
+					$display_name = trim($display_name[0]);
+				}
+				else
+				{
+					$display_name = sfpg_display_name($val, TRUE);
+				}
+				echo "dirName[".($item)."] = '".sts($display_name)."';\n";
+				echo "dirLink[".($item)."] = '".sfpg_url_string((GALLERY.$val."/"))."';\n";
+				echo "dirThumb[".($item)."] = '".$filed[4]."';\n";
+				echo "dirInfo[".($item)."] = '".sts($filed[3]."|".$filed[0]."|".$filed[1]."|".$filed[2]."|".@file_get_contents(GALLERY_ROOT.GALLERY.$val."/".DIR_DESC_FILE),false,DESC_NL_TO_BR)."';\n\n";
+				$item++;
+			}
+		}
+
 		if (!file_exists(DATA_ROOT."info/".GALLERY."_sfpg_dir"))
 		{
 			sfpg_set_dir_info(GALLERY);
@@ -2766,29 +2844,7 @@
 		}
 		echo "dirThumb[0] = '".$filed[4]."';\n";
 		echo "dirInfo[0] = '".sts($filed[3]."|".$filed[0]."|".$filed[1]."|".$filed[2]."|".(in_array(DIR_DESC_FILE, $misc)?@file_get_contents(GALLERY_ROOT.GALLERY.DIR_DESC_FILE):""),false,DESC_NL_TO_BR)."';\n\n";
-		$item = 1;
-		foreach ($dirs as $val)
-		{
-			$display_name = @file(GALLERY_ROOT.GALLERY.$val."/".DIR_NAME_FILE);
-			if ($display_name)
-			{
-				$display_name = trim($display_name[0]);
-			}
-			else
-			{
-				$display_name = sfpg_display_name($val, TRUE);
-			}
-			echo "dirName[".($item)."] = '".sts($display_name)."';\n";
-			echo "dirLink[".($item)."] = '".sfpg_url_string((GALLERY.$val."/"))."';\n";
-			if (!file_exists(DATA_ROOT."info/".GALLERY.$val."/_sfpg_dir"))
-			{
-				sfpg_set_dir_info(GALLERY.$val."/");
-			}
-			$filed = explode("|", file_get_contents(DATA_ROOT."info/".GALLERY.$val."/_sfpg_dir"));
-			echo "dirThumb[".($item)."] = '".$filed[4]."';\n";
-			echo "dirInfo[".($item)."] = '".sts($filed[3]."|".$filed[0]."|".$filed[1]."|".$filed[2]."|".@file_get_contents(GALLERY_ROOT.GALLERY.$val."/".DIR_DESC_FILE),false,DESC_NL_TO_BR)."';\n\n";
-			$item++;
-		}
+
 		$img_direct_link = FALSE;
 		$item = 1;
 		foreach ($images as $val)

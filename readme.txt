@@ -1,10 +1,10 @@
 
 
-		Single File PHP Gallery 4.7.0 (SFPG)
+		Single File PHP Gallery 4.7.1 (SFPG)
 
 		See END USER LICENSE AGREEMENT for commercial use
 
-		Released: 29-Dec-2016
+		Released: 19-Dec-2018
 		http://sye.dk/sfpg/
 		By Kenny Svalgaard
 
@@ -93,25 +93,27 @@ IMPORTANT INFORMATION
   The clean up routine is activated when viewing a directory where the number of subdirectories, images and/or files have changed since last access to the directory.
   For this to work, PHP needs permission to delete in the DATA_ROOT.
 
-* The gallery contains an option to delete images older than a set number of days. If using this option, make sure to have a backup of all your images in the GALLERY_ROOT.
-  For this to work, PHP needs permission to delete in the GALLERY_ROOT.
+* The gallery contains options to delete images older than a set number of days, and empty directories. If using these options, make sure to have a backup of the GALLERY_ROOT.
+  For these options to work, PHP needs permission to delete in the GALLERY_ROOT.
 
 
 ____________________________________________________________
 NEWS IN THIS VERSION
 
-* Added Upload option to the admin functions.
-* Changed keyboard navigation to only have effect when viewing images. Except Esc, which can also be used for jumping a directory up.
-* Fixed the need to double click on elements on touch devices (iOS).
-* Fixed bug that made some servers not being able to use the admin option to move files.
-* Minor code cleanup changes.
+* Added option "DELETE_EMPTY_DIRS" to have the gallery delete empty directories. This option is disabled by default.
+* Added "Invert Selection" button in ADMIN menu. Can be used to selece/deselect all items.
+* Added option "THUMB_PNG_ALPHA" to allow transparency in PNG thumbnails. The option is enabled by default. Delete old thumbnails to have new transparent generated.
+* Fixed so that preview images is not squared when THUMB_SQUARE is set to TRUE.
+* Fixed a vulnerability in PayPal option, that could allow script in crafted URLs to run in client browser. The vulnerability was only present with PayPal option enabled.
+* Fixed so that the information box stays closed when closed by user. It was a problem when changing directory with SHOW_INFO_BY_DEFAULT enabled.
+* Fixed so that preview text box is not shown when preview is disabled.
 
 
 ____________________________________________________________
 REQUIREMENTS
 
 For this gallery to function you will need the following:
-* A web server capable of running PHP 5 scripts.
+* A web server capable of running PHP 5, or higher, scripts.
 * The PHP GD library (php_gd) installed. See here for information: http://php.net/gd
 * PHP write access to server.
 * PHP memory limit large enough to contain both full size image and preview/thumb (converted to BMP) See the FAQ section for further information on this.
@@ -240,10 +242,10 @@ The PASSWORD option can be used to protect the gallery, when this setting is ena
 
 If you want to have a public gallery and also want to allow administrators to login and use the admin functions, do like this:
  1. Configure the public gallery as you want (remember to set the SECURITY_PHRASE to a random string of chars). Leave the ADMIN setting to FALSE, and the PASSWORD setting to '', which will make it accessible for all.
- 2. Make a copy of the public gallery, for the administrators to use. Name it as you like. The important thing is that the SECURITY_PHRASE is the same in both copies.
- 3. Set a good, secure and unique password in the PASSWORD option, in the administrator copy of the gallery.
- 4. Set ADMIN to TRUE, in the administrator copy of the gallery.
- 5. Now only link to the public gallery on your page. But use the administrator copy to login and administer as needed.
+ 2. Make a copy of the public index.php file, for the administrators to use. Name it as you like. The important thing is that the SECURITY_PHRASE is the same in both copies.
+ 3. Set a good, secure and unique password in the PASSWORD option, in the administrator copy of the gallery file.
+ 4. Set ADMIN to TRUE, in the administrator copy of the gallery file.
+ 5. Now only link to the public gallery on your page. But use the administrator copy to login and administer the gallery as needed.
 
 When this option is set to TRUE, the "Admin" button will be shown in the bottom menu. Click it to enter administrator menu.
 
@@ -736,6 +738,13 @@ If thumbnails have been saved on server you will have to delete them in order to
 
 
 ____________________________________________________________
+define('THUMB_PNG_ALPHA', TRUE);
+
+Set to TRUE to preserve alpha channel (transparency) for PNG thumbnails.
+Set to FALSE to not preserve alpha channel (transparency) for PNG thumbnails.
+
+
+____________________________________________________________
 define('USE_PREVIEW', FALSE);
 
 Set to TRUE to have the script generate intermediate preview images. The preview images will be shown when a thumbnail is clicked, and a "Full resolution" button will be enabled to allow switching between full resolution and preview.
@@ -1008,6 +1017,20 @@ If using this option, make sure to always have a backup of the images. Changing 
 INFO: Using this option require PHP to have permission to delete in the GALLERY_ROOT.
 INFO: The date being used for this option is the file time, which is not necessary the same as when the image was taken.
 INFO: This setting will only delete images. Directories and files are never deleted.
+
+
+____________________________________________________________
+define('DELETE_EMPTY_DIRS', FALSE);
+
+** WARNING ** SETTING THIS OPTION TO ANYTHING OTHER THAN FALSE WILL MAKE THE GALLERY DELETE EMPTY DIRECTORIES IN THE GALLERY_ROOT **
+
+Set to TRUE to have the gallery delete empty directories.
+Set to FALSE to have the gallery leave empty directories as is.
+
+WARNING: A directory not containing directories, images or files, that is to be shown in the gallery is considered empty. This means that a directory containing banner, description, hidden files or hidden folders, will still be considered empty, and will be deleted if the option is set to TRUE.
+
+Information about what is inside a directory is updated when entering the directory. So if all content have been deleted in a directory, you will have to enter the directory to update the information. First then will the directory be deleted.
+Empty directories is deleted when they are about to be listed as an element in the gallery.
 
 
 ____________________________________________________________
@@ -1415,6 +1438,18 @@ ____________________________________________________________
 define('TEXT_MKDIR', 'Create Directory');
 
 Text for the Create Directory button, used when the ADMIN option have been set to TRUE.
+
+
+____________________________________________________________
+define('TEXT_UPLOAD', 'Upload');
+
+Text for the Upload button, used when the ADMIN option have been set to TRUE.
+
+
+____________________________________________________________
+define('TEXT_INVERT_SELECTION', 'Invert Select');
+
+Text for the Invert Selection button, used when the ADMIN option have been set to TRUE.
 
 
 ____________________________________________________________
