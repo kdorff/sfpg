@@ -16,8 +16,11 @@
 	error_reporting(0);
 
 	//	----------- CONFIGURATION START ------------
+	//define("SCRIPT_NAME", $_SERVER["PHP_SELF"]);
+	define("SCRIPT_NAME", "");
 	define("URL_SEPARATOR", "*");
 	define("CRYPTIC_URL", FALSE);
+	define("PRETTY_URL", TRUE); // for usage with MOD_REWRITE
 	//	--------------------------------------------
 
 	define('GALLERY_ROOT', './');
@@ -280,6 +283,12 @@
 
 	//	----------- CONFIGURATION END ------------
 
+	$url_self = substr_count($_SERVER['PHP_SELF'], '/');
+	$url_request = substr_count($_SERVER['REQUEST_URI'], '/');
+	$url_base = '';
+	for($i=1; $i<=($url_request-$url_self); $i++) $url_base.='../';
+	define("URL_BASE", $url_base);
+
 	function sfpg_array_sort(&$arr, &$arr_time, $sort_by_time, $sort_reverse)
 	{
 		if ($sort_by_time)
@@ -348,7 +357,7 @@
 		if (CRYPTIC_URL) return sfpg_base64url_encode($res.hash('sha256', $res.URL_SEPARATOR.SECURITY_PHRASE));
 		else {
 			$a = urlencode($res);
-			return $a;
+			return (PRETTY_URL ? str_replace("%2F", "/", $a) : $a);
 		}
 	}
 
@@ -716,7 +725,7 @@
 		}
 		else
 		{
-			header('Location: '.$_SERVER['PHP_SELF']);
+			header("Location: ".( SCRIPT_NAME != "" ? SCRIPT_NAME : "./"));
 			exit;
 		}
 	}
@@ -1258,7 +1267,10 @@
 		echo "<script>
 		<!--
 
-		var phpSelf = '".$_SERVER["PHP_SELF"]."';
+		var phpSelf = '".URL_BASE.SCRIPT_NAME."';
+		function phpSelfLink(link, extra='') {
+			return phpSelf + ".(PRETTY_URL ? "" : "'?sfpg' + ")." link + (extra != '' ? '".(PRETTY_URL ? "?" : "&")."' + extra : '' );
+		}
 
 		var navLink = [];
 		var navName = [];
@@ -1339,7 +1351,7 @@
 						{
 							if(navLink.length>2)
 							{
-								document.location=phpSelf+'?sfpg='+navLink[navLink.length-3]+(showInfo?'&info=1':'');
+								document.location=phpSelfLink(navLink[navLink.length-3], (showInfo?'info=1':''));
 							}
 						}
 						break;
@@ -1702,7 +1714,7 @@
 					}
 					echo "
 					info += '</div><br>';
-					info += '<strong>".sts(TEXT_LINKS)."</strong><br><a href=\"'+phpSelf+'?sfpg='+dirLink[id]+'\">".sts(TEXT_DIRECT_LINK_GALLERY)."</a><br><br>';
+					info += '<strong>".sts(TEXT_LINKS)."</strong><br><a href=\"'+phpSelfLink(dirLink[id])+'\">".sts(TEXT_DIRECT_LINK_GALLERY)."</a><br><br>';
 				}
 				else if (type == 'img')
 				{
@@ -1830,7 +1842,7 @@
 						info += '<br><strong>".sts(TEXT_FIRST_VIEW)."</strong><br><br><span id=\"img_size\"></span><span id=\"img_resize\"></span><br><br>';
 					}
 					info += '<strong>".sts(TEXT_LINKS)."</strong><br>';
-					info += '<a href=\"'+phpSelf+'?sfpg='+imgLink[id]+'\">".sts(TEXT_DIRECT_LINK_IMAGE)."</a><br>';
+					info += '<a href=\"'+phpSelfLink(imgLink[id])+'\">".sts(TEXT_DIRECT_LINK_IMAGE)."</a><br>';
 					".(TEXT_DOWNLOAD ? "info += '<a href=\"'+phpSelf+'?cmd=dl&sfpg='+imgLink[id]+'\">".sts(TEXT_DOWNLOAD)."</a><br><br>';" : "")."
 				}
 				else if (type == 'file')
@@ -1876,7 +1888,7 @@
 
 		function openGallery(id, type)
 		{
-			window.location=phpSelf+'?sfpg='+((type=='nav')?navLink[id]:dirLink[id])+(showInfo?'&info=1':'');
+			window.location=phpSelfLink(((type=='nav')?navLink[id]:dirLink[id]), (showInfo?'info=1':''));
 		}
 
 
@@ -2393,7 +2405,7 @@
 			var selectForm = document.createElement('form');
 			selectForm.setAttribute('method','post');
 			selectForm.setAttribute('id','selectForm');
-			selectForm.setAttribute('action', phpSelf+'?sfpg='+dirLink[0]+(showInfo?'&info=1':''));
+			selectForm.setAttribute('action', phpSelfLink(dirLink[0], (showInfo?'&info=1':'')));
 			return selectForm;
 		}
 
