@@ -253,7 +253,7 @@
 
 	option('COLOR_MARKED_BACK', '#ff0000');
 	option('COLOR_MARKED_TEXT', '#000000');
-	
+
 	option('COLOR_DIR_BOX_BORDER', '#505050');
 	option('COLOR_DIR_BOX_BACK', '#000000');
 	option('COLOR_DIR_BOX_TEXT', '#aaaaaa');
@@ -542,7 +542,7 @@
 				{
 					$new_img_width = $mpo_full_width;
 					$stereo_align = (int)(($mpo_full_width-($mpo_stereo_width*2+MPO_SPACING))/2);
-					$full_offset_x = 0;					
+					$full_offset_x = 0;
 				}
 				$new_img_height += $mpo_full_height;
 			}
@@ -883,7 +883,7 @@
 				$image_path_file = GALLERY_ROOT.$image_dir.$image_file;
 			}
 			if ($download)
-			{		
+			{
 				header('Content-Type: application/octet-stream');
 				header('Content-Disposition: attachment; filename="'.$image_file.'"');
 			}
@@ -1439,7 +1439,7 @@
 
 		var imgFullWidth;
 		var imgFullHeight;
-		
+
 		var selectedDirs = [];
 		var selectedImages = [];
 		var selectedFiles = [];
@@ -2132,7 +2132,7 @@
 			{
 				selectElement(gebi('img'+i), selectedImages, i);
 				gebi('img'+i).className=(isSelected('img', i)?'innerbox_marked':'innerboximg');
-				
+
 			}
 			for (i = 1; i < fileInfo.length; i++)
 			{
@@ -2699,7 +2699,7 @@
 				{
 					content += '<br><br>".sts(TEXT_NO_THUMB_FOR_FILE)."';
 				}
-				content += '</div>'; 
+				content += '</div>';
 				". (THUMB_CHARS_MAX ? "content += thumbDisplayName(fileInfo[elementNumber]['fileName']);" : "")."
 				content += '</div>';
 			}
@@ -2797,7 +2797,7 @@
 		}
 
 		";
-		
+
 		if (PAYPAL_ENABLED)
 		{
 			echo "
@@ -3177,7 +3177,7 @@
 		{
 			sort($files_for_zip); // sorting before hash to make sure that hash function gets input in same order every time.
 			$zip_hash = hash('sha256', serialize($files_for_zip));
-			
+
 			$zip_dir = DATA_ROOT.'zip/'.GALLERY;
 			if (GALLERY == '')
 			{
@@ -3723,7 +3723,7 @@
 	{
 		width:'.((2 * (THUMB_BORDER_WIDTH + THUMB_MARGIN)) + THUMB_MAX_WIDTH).'px;
 		height:'.((THUMB_BORDER_WIDTH * 2) + THUMB_MARGIN + THUMB_MAX_HEIGHT + 6).'px;
-		margin:0px; 
+		margin:0px;
 		padding:0px;
 	}
 
@@ -3906,7 +3906,7 @@
 		'.(ROUND_CORNERS?'border-radius:'.(ROUND_CORNERS*2).'px;':'').'
 		background:'.COLOR_INFOBOX_BACK.';
 	}
-	
+
 	.box_inner_info
 	{
 		margin:5px;
@@ -3964,7 +3964,7 @@
 	'</style>';
 	sfpg_javascript();
 	echo '</head>';
-	
+
 	if (PAYPAL_ENABLED and $get_set and (@$_GET['cmd'] == 'buy') and IMAGE!='')
 	{
 		$sell=@file(GALLERY_ROOT.GALLERY.IMAGE.PAYPAL_EXTENSION,FILE_IGNORE_NEW_LINES);
