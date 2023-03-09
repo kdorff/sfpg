@@ -16,6 +16,9 @@
 	error_reporting(defined('ERROR_REPORT') ? ERROR_REPORT : 0);
 
 	//	----------- CONFIGURATION START ------------
+	option("URL_SEPARATOR", "*");
+	option("CRYPTIC_URL", FALSE);
+	//	--------------------------------------------
 
 	option('GALLERY_ROOT', './');
 	option('DATA_ROOT', './_sfpg_data/');
@@ -382,15 +385,37 @@
 
 	function sfpg_url_string($dir = '', $img = '')
 	{
-		$res = $dir.'*'.$img.'*';
-		return sfpg_base64url_encode($res.hash('sha256', $res.SECURITY_PHRASE));
+		$res = $dir.($img == '' ? '' : URL_SEPARATOR.$img);
+		if ($res == '') $res = './';
+		if (CRYPTIC_URL) return sfpg_base64url_encode($res.hash('sha256', $res.URL_SEPARATOR.SECURITY_PHRASE));
+		else {
+			$a = urlencode($res);
+			return $a;
+		}
 	}
-
 
 	function sfpg_url_decode($string)
 	{
-		$get = explode('*', sfpg_base64url_decode($string));
-		if (is_array($get) and (count($get)==3) and (hash('sha256', $get[0].'*'.$get[1].'*'.SECURITY_PHRASE) === $get[2]) and (strpos(GALLERY_ROOT.$get[0].$get[1], '/../') === FALSE) and (strpos($get[0].$get[1], '\\') === FALSE))
+		if (CRYPTIC_URL) {
+			$get = explode(URL_SEPARATOR, sfpg_base64url_decode($string));
+			if (!is_array($get) or count($get) < 2) {
+				$check = false;
+			} else if (count($get) >= 3) {
+				$check = ((hash('sha256', $get[0].URL_SEPARATOR.$get[1].URL_SEPARATOR.SECURITY_PHRASE) === $get[2]) and (strpos($get[0].$get[1], '/../') === FALSE) and (strpos($get[0].$get[1], '\\') === FALSE));
+			} else {
+				$check = ((hash('sha256', $get[0].URL_SEPARATOR.SECURITY_PHRASE) === $get[1]) and (strpos($get[0], '/../') === FALSE) and (strpos($get[0], '\\') === FALSE));
+			}
+		} else {
+			$get = explode(URL_SEPARATOR, $string);
+			if (!is_array($get)) {
+				$check = false;
+			} else if (count($get) >= 2) {
+				$check = ((strpos($get[0].$get[1], '/../') === FALSE));
+			} else {
+				$check = ((strpos($get[0], '/../') === FALSE));
+			}
+		}
+		if ($check)
 		{
 			return [$get[0], $get[1]];
 		}
