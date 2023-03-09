@@ -1,0 +1,4 @@
+RewriteEngine on
+RewriteBase /base/path/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule (.*) ?sfpg=$1 [QSA]
