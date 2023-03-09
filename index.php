@@ -16,6 +16,9 @@
 	error_reporting(0);
 
 	//	----------- CONFIGURATION START ------------
+	define("URL_SEPARATOR", "*");
+	define("CRYPTIC_URL", FALSE);
+	//	--------------------------------------------
 
 	define('GALLERY_ROOT', './');
 	define('DATA_ROOT', './_sfpg_data/');
@@ -332,15 +335,33 @@
 
 	function sfpg_url_string($dir = '', $img = '')
 	{
-		$res = $dir.'*'.$img.'*';
-		return sfpg_base64url_encode($res.md5($res.SECURITY_PHRASE));
+		$res = $dir.($img == '' ? '' : URL_SEPARATOR.$img);
+		if (CRYPTIC_URL) return sfpg_base64url_encode($res.md5($res.URL_SEPARATOR.SECURITY_PHRASE));
+		else {
+			$a = urlencode($res);
+			return $a;
+		}
 	}
 
 
 	function sfpg_url_decode($string)
 	{
-		$get = explode('*', sfpg_base64url_decode($string));
-		if ((md5($get[0].'*'.$get[1].'*'.SECURITY_PHRASE) === $get[2]) and (strpos($get[0].$get[1], '/../') === FALSE) and (strpos($get[0].$get[1], '\\') === FALSE))
+		if (CRYPTIC_URL) {
+			$get = explode(URL_SEPARATOR, sfpg_base64url_decode($string));
+			if (count($get) >= 3) {
+				$check = ((md5($get[0].URL_SEPARATOR.$get[1].URL_SEPARATOR.SECURITY_PHRASE) === $get[2]) and (strpos($get[0].$get[1], '/../') === FALSE) and (strpos($get[0].$get[1], '\\') === FALSE));
+			} else {
+				$check = ((md5($get[0].URL_SEPARATOR.SECURITY_PHRASE) === $get[1]) and (strpos($get[0], '/../') === FALSE) and (strpos($get[0], '\\') === FALSE));
+			}
+		} else {
+			$get = explode(URL_SEPARATOR, $string);
+			if (count($get) >= 2) {
+				$check = ((strpos($get[0].$get[1], '/../') === FALSE));
+			} else {
+				$check = ((strpos($get[0], '/../') === FALSE));
+			}
+		}
+		if ($check)
 		{
 			return array($get[0], $get[1]);
 		}
